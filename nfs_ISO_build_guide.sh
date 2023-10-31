@@ -231,7 +231,7 @@ zpool export zroot
 zpool import -d /dev/nvme0n1p4 -R /mnt zroot -N
 
 zfs mount zroot/ROOT/default
-zfs mount .a
+zfs mount -a
 
 df -k
 
