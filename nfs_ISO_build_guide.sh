@@ -108,6 +108,9 @@ Part     Size   Type
 
 
 
+#if modules do not load correctly, try:
+
+curl -s https://raw.githubusercontent.com/eoli3n/archiso-zfs/master/init | bash
 
 
 modprobe zfs
