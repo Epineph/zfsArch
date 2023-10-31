@@ -1,25 +1,61 @@
 # Need to do this on a previous arch installation
+# the goal is to install arch on a nfs system
 
+# first we make an .iso file by following the commands below (remember to
+# to change the username so that it matches yours)
+
+#pkg needed to make custom arch iso
 sudo pacman -S archiso
 
 mkdir ISOBUILD
 
+#this is the dir we create to make the .iso file in
+
 cp -r /usr/share/archiso/configs/releng ISOBUILD/
+
+# copies files from the archiso recursively into our build dir
 
 cd ISOBUILD
 
+#rename the dir to zfsiso
 mv /releng/ zfsiso
 
 cd
 
+# executing "cd" alone takes us back to the home dir where we will need to
+# clone 2 packages from the AUR, which we will need to build the custom
+# arch zfs-iso
+
+# if you don't have any AUR helped such as yay or paru, 
+# if you do, ignore this step, then do the following:
+
+cd /opt
+
+sudo git clone https://aur.archlinux.org/yay.git
+sudo git clone https://aur.archlinux.org/paru-bin.git
+
+sudo chmod -R u+rwx /opt
+cd /yay
+makepkg -si PKGBUILD
+cd ..
+cd /paru-bin
+makepkg -si PKGBUILD
+
+cd ~
+# skip to here if you do have yay/paru or if you are done with these steps
+
+#now we clone zfs-dkms and zfs-utils which we will need
 git clone https://aur.archlinux.org/zfs-dkms.git
 
 cd zfs-dkms/
 
+#you should probably not pass --skippgpcheck for security, but here it is
+# if the laziness of saving some time prevails
 makepkg --skippgpcheck
 
 cd
 
+#we do the same for this package
 git clone https://aur.archlinux.org/zfs-utils.git
 
 cd zfs-utils/
@@ -28,12 +64,16 @@ makepkg --skippgpcheck
 
 cd
 
+# now we go back to the build dir
 cd /ISOBUILD/zfsiso
 
+# create a dir for the zfs repo
 mkdir zfsrepo
 
 cd zfsrepo
 
+# next, we copy all the .zst filles from then two packages we built
+# which we will need for the iso creation
 cp ~/zfs-dkms/*.zst .
 
 cp ~/zfs-utils/*.zst .
@@ -48,7 +88,7 @@ cd ..
 
 sudo nano packages.x86_64
 
-# add this in the bottom
+# add this in the bottom:
 
 # ZFS Custom  Repo
 
@@ -56,26 +96,35 @@ linux-headers
 zfs-dkms
 zfs-utils
 
+#alternatively, use tee to append these lines
+echo "linux-headers" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
+echo "zfs-dkms" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
+echo "zfs-utils" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
+
 # edit pacman.configs
 
-sudo nano pacman.configs
+sudo nano pacman.conf
 
 # add this custom repository in the buttom like this:
 
 [zfsrepo]
 SigLevel = Optional TrustAll
-Server = file:///home/<username>/ISOBUILD/zfsiso/zfsrepo
+Server = file:///home/heini/ISOBUILD/zfsiso/zfsrepo
+#remember to swap heini with your username
 
+
+#next, we create two additiional directories
 mkdir {WORK,ISOOUT}
 
 #change to root
+#do not change dir. If you are lost, go back to /home/heini/ISOBUILD/zfsiso
 
 su root
 
 #this will build this custom .iso
 mkarchiso -v -w WORK -o ISOOUT .
 
-# create bootable usb medium
+# create bootable usb medium from the custom arch .iso we just created
 
 cp /home/heini/ISOBUILD/zfsiso/ISOOUT/archlinux-2023.10.31-x86_64.is
 o /dev/sda
