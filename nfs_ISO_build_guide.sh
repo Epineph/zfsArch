@@ -131,29 +131,29 @@ o /dev/sda
 
 reboot
 
+#from the arch wiki
+#Partition the destination drive
 
-Partition the destination drive
+#Here is an example of a basic partition scheme that could be employed for your ZFS root install on a BIOS/MBR installation using GRUB:
 
-Here is an example of a basic partition scheme that could be employed for your ZFS root install on a BIOS/MBR installation using GRUB:
+#Part     Size   Type
+#----     ----   -------------------------
+#   1     XXXG   Solaris Root (bf00)
 
-Part     Size   Type
-----     ----   -------------------------
-   1     XXXG   Solaris Root (bf00)
+#using GRUB on a BIOS (or UEFI machine in legacy boot mode) machine but using a GPT partition table:
 
-Using GRUB on a BIOS (or UEFI machine in legacy boot mode) machine but using a GPT partition table:
-
-Part     Size   Type
-----     ----   -------------------------
-   1       2M   BIOS boot partition (ef02)
-   2     XXXG   Solaris Root (bf00)
+#Part     Size   Type
+#----     ----   -------------------------
+#   1       2M   BIOS boot partition (ef02)
+#   2     XXXG   Solaris Root (bf00)
 
 
-Another example, this time using a UEFI-specific bootloader (such as rEFInd) with an GPT partition table:
+#Another example, this time using a UEFI-specific bootloader (such as rEFInd) with an GPT partition table:
 
-Part     Size   Type
-----     ----   -------------------------
-   1     100M   EFI boot partition (ef00)
-   2     XXXG   Solaris Root (bf00)
+#Part     Size   Type
+#----     ----   -------------------------
+#   1     100M   EFI boot partition (ef00)
+#   2     XXXG   Solaris Root (bf00)
 
 
 
