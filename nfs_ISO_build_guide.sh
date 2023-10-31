@@ -166,6 +166,8 @@ modprobe zfs
 
 lsmod | grep i zfs
 
+zpool create -o compatibility=grub2 zroot /dev/nvme0n1p5
+
 zpool create -f -o ashift=12 \
 -O acltype=posixacl \
 -O relatime=on \
