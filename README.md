@@ -11,7 +11,7 @@ Therefore, this guide assumes that you already have arch installed and device su
 
 # Creating the custom arch-iso
 
-```
+```sh
 sudo pacman -S archiso
 ```
 
