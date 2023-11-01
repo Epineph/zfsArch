@@ -9,6 +9,7 @@ Need to do this on a previous arch installation
 
 Therefore, this guide assumes that you already have arch installed and device such as a usb on which the .iso will be installed as a bootable installation medium.
 
+Keep in mind that you do not have to put the files in the folders used here. However, the commands are written so that you can copy-and-paste your way through the guide, assuming that you do not change directory to other folders in between. I recommend that you do not start as root, in which case ~ will be interpreted with respect to root and not the user
 # Creating the custom arch-iso
 
 ```bash
@@ -23,7 +24,7 @@ cp -r /usr/share/archiso/configs/releng ISOBUILD/
 This copies files from the archiso recursively into our build dir
 
 ```bash
-cd ISOBUILD
+cd ISOBUILD # this should be located in ~/ISOBUILD or /home/<yourusername>/ISOBUILD
 
 #rename the dir to zfsiso
 mv /releng/ zfsiso
@@ -31,8 +32,8 @@ mv /releng/ zfsiso
 cd # when executed alone should take you back to the previous folder, which in this case is the ~
 ```
 
-I you don't have any AUR helped such as yay or paru, then you need to get one or youc can follow these steps. Just skip if you already have.
-```
+I you don't have any AUR helped such as yay or paru, then you need to get one or youc can follow these steps. Just skip if you already have. Futhermore, you do not have to put them in ´/opt`
+```bash
 cd /opt
 
 sudo git clone https://aur.archlinux.org/yay.git
