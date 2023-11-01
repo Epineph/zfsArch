@@ -131,8 +131,23 @@ o /dev/sda
 
 reboot
 
+## now the .iso file is complete.
+## the next bit is done after rebooting and booting from the custom
+## .iso arch file above
+
 #from the arch wiki
 #Partition the destination drive
+
+loadkeys dk
+# change keyboard layout as seems fit to you
+
+setfont ter-128n
+# increasing font size, which may be especially helpful when using
+# certain monitors (the package is called terminus-font), and is
+# is usually not on a filesystem after installation,
+# unless installed on your filesystem - it can be useful
+# if you boot up in a destopless environment after installation
+# and is pre-installed on most official arch .iso files
 
 #Here is an example of a basic partition scheme that could be employed for your ZFS root install on a BIOS/MBR installation using GRUB:
 
@@ -159,14 +174,36 @@ reboot
 
 #if modules do not load correctly, try:
 
-curl -s https://raw.githubusercontent.com/eoli3n/archiso-zfs/master/init | bash
+#curl -s https://raw.githubusercontent.com/eoli3n/archiso-zfs/master/init | bash
 
 
 modprobe zfs
 
 lsmod | grep i zfs
 
-zpool create -o compatibility=grub2 zroot /dev/nvme0n1p5
+# if you do not plan to use a mirrored partition, which may improve
+# write and read speed by increasing the bandwith, but at the cost of
+# space, hence consider that id you are using a large hard-drive,
+# the amount of space used it twice as big, and therefore consider
+# the pro's and con's with respect to the size of the mirrored partition,
+# and hence the trade-off with respect to this variable.
+
+# if you do not want mirrored partitions, and you want to ensure that it
+# works if you use grub to boot up your system, then consider using the
+# following command
+
+zpool create -o compatibility=grub2 zroot /dev/nvme0n1pX #X indicating the
+# the label on your harddrive, run lsblk or lsblk -l to see your
+# current set-up, if you are using a partitioned hard-drive. If using this,
+# then skip the following commands until you reach the bit starting with
+# "zfs create"
+
+# otherwise, these options are listed on the arch wiki, but I can confirm
+# that, if you are using grub, you may experience issues with running
+# grub-install ... with grub complaining about not recognizing your
+# file-system. The command above circumvents that, at least in my case, 
+# assuming that you haven't done anything else differently to what
+# is presented here
 
 zpool create -f -o ashift=12 \
 -O acltype=posixacl \
@@ -201,26 +238,171 @@ zpool create -f -o ashift=12         \
              -O keylocation=prompt     \
              zroot /dev/disk/by-id/id-to-partition-partx
 
+#According to the official arch wiki:
 #GRUB-compatible pool creation
 
-#By default, zpool create enables all features on a pool. If /boot resides on ZFS when using GRUB #you must only enable features supported by GRUB otherwise GRUB will not be able to read the #pool. ZFS includes compatibility files (see /usr/share/zfs/compatibility.d) to assist in creating #pools at specific feature sets, of which grub2 is an option.
+#By default, zpool create enables all features on a pool. If /boot resides on ZFS 
+# when using GRUB #you must only enable features supported by GRUB otherwise,
+# GRUB will not be able to read the #pool. ZFS includes compatibility
+#  files (see /usr/share/zfs/compatibility.d) to assist
+# in creating #pools at specific feature sets, of which grub2 is an option.
 
 #You can create a pool with only the compatible features enabled:
 
 zpool create -o compatibility=grub2 $POOL_NAME $VDEVS
 
-
+# if you want to see an example of this, please refer to the
+# example demonstrated previously above (a few lines above from here)
 
 
 #check status
 zpool status
 
 
-zfs create -o mountpoint=none zroot/data
-zfs create -o mountpoint=none zroot/ROOT
-zfs create -o mountpoint=/ -o canmount=noauto zroot/ROOT/default
-zfs create -o mountpoint=/home zroot/data/home
-zfs create -o mountpoint=/var -o canmount=off zroot/var
+
+# If you want to create a mirrored ZFS pool with `grub2` compatibility"
+# Here's a step-by-step guide:
+
+wwwwøøææ##00°0000@@@11		@a11	1						ÅÅPÅPP# 1. 
+# Load the ZFS module (if you haven't already)
+# remember the information provided here is not, and to my
+# my understanding, the official arch .iso file cannot be used
+# to install zfs, as of November 1. 2023, and might or might not
+# have changed since then, though no public plans of this have
+# been released, so it is probable that this is true in the forseeable
+# future.
+
+bash
+modprobe zf	
+
+# before deciding to mirrror your filesystem and execute the commands bellow, please
+consider the factors given below since they are extremely important with regards
+to informing your decision, both copy your system on two partitions and thus
+# require twice as much space, but rather than mirrorring your filesystem on two seperate physical devices
+# which offers data redundancy and therefore protection,
+
+zpool create -o compatibility=grub2 -o ashift=12 \
+-O acltype=posixacl \
+-O relatime=on \
+-O xattr=sa \
+-O dnodesize=legacy \
+-O normalization=formD \
+-O mountpoint=none \
+-O canmount=off \
+-O devices=off \
+-R /mnt \
+rpool mirror /dev/sda2 /dev/sdb2
+# if you want your filesystem to be one two rather than one partition (and there
+are good reasons for doing this, despite it sounding like nothing but a 
+significant drawback and question not worth asking. You may be forgiven for thinking this,
+but there are ultimately several factors important to consider it.
+
+
+# further, if you have 2 hard drives (which may offer you more space than you need 
+# making the drawbacks of this option less important, since the degree of
+# of constraint imposed on you is quite limited. Depending on factors such as 
+# this, as well as your preferences and current hardware, you would further 
+# benefit from consdering whether to mirror or whether to stripe your filesystem. 
+# This is explained in more detail below.
+
+# definitions
+
+# .1. **Mirroring (RAID 1)**: Data is duplicated across two or more drives. 
+# This means that if you have two drives, each drive contains an identical 
+# copy of the data. It provides redundancy. If one drive fails, the other 
+# still has all the data. 
+
+# Importantly, Read performance can be improved because data can
+# be read from both drives, but write performance is the same as a single 
+# drive because the same data must be written to both drives.
+
+# 2. **Striping (RAID 0)**: Data is divided into blocks and each block 
+# is written to a separate disk drive. For example, with two drives, the 
+# first block goes to the first drive, the second block to the second drive, 
+# the third block back to the first drive, and so on. 
+
+# Importantly, striping provides improved performance since data is 
+# read/written from/to both drives simultaneously. However, there's no 
+# mredundancy; if one drive fails, all the data is lost because half of the 
+# data blocks are on each drive.
+
+# Therefore, if you have two hard-drives, i.e. two different physical devices that you
+# use to store you data on, you experience more benefits from sacricing 
+# half of your available space! Depending on thr degree to which performance 
+# is the parameter of interest and hence also the variable or factor most 
+# imoortant with respect to informing your decision to sacrifice space for 
+# mostly security reasons as well as some limited performance benefits.
+# Therefore, depending on your preferences weighing security with some limited
+# performance benefits your file system, which on one hand doesn't doesn't 
+# offer any protection , but on the other hand, gives you the max benefit 
+#in both read and write speed.
+
+#For ZFS, the commands are similar. Here's how you would create a striped 
+#pool using ZFS:
+
+```bash
+zpool create -o ashift=12 \
+             -O acltype=posixacl \
+             -O relatime=on \
+             -O xattr=sa \
+             -O dnodesize=legacy \
+             -O normalization=formD \
+             -O mountpoint=none \
+             -O canmount=off \
+             -O devices=off \
+             -R /mnt \
+             zroot /dev/sda2 /dev/sdb2
+```
+
+#This command stripes the data between `/dev/sda2` and `/dev/sdb2`.
+
+#Just remember that while striping will give you the best performance of the
+# two, it comes with the significant drawback of no data redundancy. 
+#If either SSD fails, you'll lose all the data in the ZFS pool. 
+#Ensure you have good backups if you go this route!
+
+# 2. Create the mirrored ZFS pool with `grub2` compatibility:
+```bash
+zpool create -o compatibility=grub2 -o ashift=12 \
+   -O acltype=posixacl \
+   -O relatime=on \
+   -O xattr=sa \
+   -O dnodesize=legacy \
+   -O normalization=formD \
+   -O mountpoint=none \
+   -O canmount=off \
+   -O devices=off \
+   -R /mnt \
+rpool mirror /dev/nvme0nX /dev/nvme1nX # x being the partition number
+# this may in your case look like /dev/sdba or /dev/sdbb, use
+lsblk -l
+# if you are uncertain with regards to the labelling used on your 
+# system
+```
+
+#You've combined the grub2 compatibility with the other options and 
+#created a mirrored pool using two devices `/dev/sda2` and `/dev/sdb2` 
+# offeering maximum performance benefits in terms of read and write speed.
+
+#3. Now, proceed with your dataset creations:
+
+#zfs create -o mountpoint=none rpool/data
+#zfs create -o mountpoint=none rpool/ROOT
+#zfs create -o mountpoint=/ -o canmount=noauto rpool/ROOT/default
+#zfs create -o mountpoint=/home rpool/data/home
+#zfs create -o mountpoint=/var -o canmount=off rpool/var
+
+# 4. Continue with your Arch installation and other ZFS configurations 
+#as you did before.
+
+# In summary, you're only using a single `zpool create` command, 
+#but modifying it to combine the features you want (in this case, `grub2` 
+# compatibility as whell as offering the maximum in performance gained,.).
+# zfs create -o mountpoint=none zroot/data
+# zfs create -o mountpoint=none zroot/ROOT
+# zfs create -o mountpoint=/ -o canmount=noauto zroot/ROOT/default
+# zfs create -o mountpoint=/home zroot/data/home
+# zfs create -o mountpoint=/var -o canmount=off zroot/var
 
 zfs create zroot/var/log
 zfs create -o mountpoint=/var/lib -o canmount=off zroot/var/lib
