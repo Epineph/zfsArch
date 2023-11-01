@@ -149,13 +149,65 @@ setfont ter-128n
 # if you boot up in a destopless environment after installation
 # and is pre-installed on most official arch .iso files
 
+# as during a normal arch installation, if you have a wired
+# connection you should already be online and you can skip
+# the following command. if yiu have wifi use:
+
+iwctl
+
+# this command should put you into a new prompt [iwd]:
+# and is already provided by the .iso from the iwd package
+# so if you want to be able to use it post-installation
+# consider adding it amongst the packages when ypu execute the
+# pacstrap /mnt command later, or just install as you would
+# normally after chrooting into the sytem, i.e. pacman -S iwd
+
+# 
+
 #Here is an example of a basic partition scheme that could be employed for your ZFS root install on a BIOS/MBR installation using GRUB:
+
+# here you can use:
+
+gdisk /dev/nvme0nX #or /dev/sdX where the letter X is # placeholder
+# and should be replaced with what appears on your
+# own hard-drive
+
+# remember to check the labelling of hard-drives and partitions
+# on your own system using:
+
+lsblk -l 
+
+# or use your preferred package to set up your hard-drive
+# and partitions, e.g., fdisk or cfdisk /dev/nvme1nX
+
+# according to the official arch wiki, many different configuration
+# can be used for a zfs installation, e.g.,
 
 #Part     Size   Type
 #----     ----   -------------------------
 #   1     XXXG   Solaris Root (bf00)
 
-#using GRUB on a BIOS (or UEFI machine in legacy boot mode) machine but using a GPT partition table:
+# here, here (bf00) indicates the code used when changing
+# partition type using the command 't' in gfisk or fdisk
+# followed by the number of the partiton after which you
+# execute use execute: bf00 which creates a solaris
+# root partition. Note that isn't necessary and 'type' in
+# this context is not important and is only the labelling
+# and the the installation should work regardless of
+# whether the the partition is formatted as something different
+# and zfa handles it differently and you don't have to format
+# the partition using (skip this bit):
+mkfs.ext4 /dev/nvme0nX # or as you would using btrfs:
+mkfs.btrfs /dev/nvme0nX
+# it makes no difference and has no impact in the context of
+# this installation. However, whether you use a MBR or GPT
+# partition table, i.e., a Master Boot Record or GUID Partition
+# Table, respectively, (I will use the latter during this installation)
+# 
+
+
+# using GRUB on a BIOS (or UEFI machine in legacy boot mode) machine 
+# but using a GPT partition table:
 
 #Part     Size   Type
 #----     ----   -------------------------
@@ -163,13 +215,28 @@ setfont ter-128n
 #   2     XXXG   Solaris Root (bf00)
 
 
-#Another example, this time using a UEFI-specific bootloader (such as rEFInd) with an GPT partition table:
+#Another example, this time using a UEFI-specific bootloader
+# (such as rEFInd) with an GPT partition table:
 
 #Part     Size   Type
 #----     ----   -------------------------
-#   1     100M   EFI boot partition (ef00)
+#   1     600M   EFI boot partition (ef00)
 #   2     XXXG   Solaris Root (bf00)
 
+# I will use a table that has a form like the one
+# above, using grub as bootloader (making it compatible with
+# dual booting it together with other linux as well as windows 
+# installations)
+
+# as will be highlighted later, you may want to choose using
+# mirroring or striping and in those cases you should have another
+# partition on another physical hard drive as well
+# in theory you can use 2 partitions on the same physical
+# hard-drive, but in that case the benefits that will be discussed
+# later are no longer applicable, leaving only con's and no pro's
+# and hence not feasible option. Just keep in mind
+# that you do not have to have a EFI partition
+# on the other physical hard drive, and a single bootloader is enough
 
 
 #if modules do not load correctly, try:
@@ -262,8 +329,7 @@ zpool status
 
 # If you want to create a mirrored ZFS pool with `grub2` compatibility"
 # Here's a step-by-step guide:
-
-wwwwøøææ##00°0000@@@11		@a11	1						ÅÅPÅPP# 1. 
+				ÅÅPÅPP# 1. 
 # Load the ZFS module (if you haven't already)
 # remember the information provided here is not, and to my
 # my understanding, the official arch .iso file cannot be used
@@ -276,8 +342,8 @@ bash
 modprobe zf	
 
 # before deciding to mirrror your filesystem and execute the commands bellow, please
-consider the factors given below since they are extremely important with regards
-to informing your decision, both copy your system on two partitions and thus
+# consider the factors given below since they are extremely important with regards
+# to informing your decision, both copy your system on two partitions and thus
 # require twice as much space, but rather than mirrorring your filesystem on two seperate physical devices
 # which offers data redundancy and therefore protection,
 
@@ -359,50 +425,16 @@ zpool create -o ashift=12 \
 #Just remember that while striping will give you the best performance of the
 # two, it comes with the significant drawback of no data redundancy. 
 #If either SSD fails, you'll lose all the data in the ZFS pool. 
-#Ensure you have good backups if you go this route!
-
-# 2. Create the mirrored ZFS pool with `grub2` compatibility:
-```bash
-zpool create -o compatibility=grub2 -o ashift=12 \
-   -O acltype=posixacl \
-   -O relatime=on \
-   -O xattr=sa \
-   -O dnodesize=legacy \
-   -O normalization=formD \
-   -O mountpoint=none \
-   -O canmount=off \
-   -O devices=off \
-   -R /mnt \
-rpool mirror /dev/nvme0nX /dev/nvme1nX # x being the partition number
-# this may in your case look like /dev/sdba or /dev/sdbb, use
-lsblk -l
-# if you are uncertain with regards to the labelling used on your 
-# system
-```
-
-#You've combined the grub2 compatibility with the other options and 
-#created a mirrored pool using two devices `/dev/sda2` and `/dev/sdb2` 
-# offeering maximum performance benefits in terms of read and write speed.
+#Ensure you have good backups if you go 
 
 #3. Now, proceed with your dataset creations:
 
-#zfs create -o mountpoint=none rpool/data
-#zfs create -o mountpoint=none rpool/ROOT
-#zfs create -o mountpoint=/ -o canmount=noauto rpool/ROOT/default
-#zfs create -o mountpoint=/home rpool/data/home
-#zfs create -o mountpoint=/var -o canmount=off rpool/var
+zfs create -o mountpoint=none rpool/data
+zfs create -o mountpoint=none rpool/ROOT
+zfs create -o mountpoint=/ -o canmount=noauto rpool/ROOT/default
+zfs create -o mountpoint=/home rpool/data/home
+zfs create -o mountpoint=/var -o canmount=off rpool/var
 
-# 4. Continue with your Arch installation and other ZFS configurations 
-#as you did before.
-
-# In summary, you're only using a single `zpool create` command, 
-#but modifying it to combine the features you want (in this case, `grub2` 
-# compatibility as whell as offering the maximum in performance gained,.).
-# zfs create -o mountpoint=none zroot/data
-# zfs create -o mountpoint=none zroot/ROOT
-# zfs create -o mountpoint=/ -o canmount=noauto zroot/ROOT/default
-# zfs create -o mountpoint=/home zroot/data/home
-# zfs create -o mountpoint=/var -o canmount=off zroot/var
 
 zfs create zroot/var/log
 zfs create -o mountpoint=/var/lib -o canmount=off zroot/var/lib
@@ -445,38 +477,26 @@ cat /etc/fstab
 
 # comment-out all zroot entries
 
-nano pacman.conf
-# add
+nano /etc/pacman.conf
+# go to the bottom and add the following:
 [archzfs]
-SigLevel = Optional TrustAll
-Server = https://zxcvfdsa.com/archzfs/$arch
+Server = https://archzfs.com/$repo/x86_64
 
-or
+or do it like this:
 
-echo "[archzfs]" | tee -a /etc/pacman.conf
-echo "SigLevel = Optional TrustAll" | tee -a /etc/pacman.conf
-echo "Server = https://zxcvfdsa.com/archzfs/$arch" | tee -a /etc/pacman.conf
+echo -e "[archzfs]\nServer = https://archzfs.com/\$repo/\$arch\nSigLevel = Optional TrustAll" >> /etc/pacman.conf
 
-consider adding:
+# ArchZFS GPG keys (see https://wiki.archlinux.org/index.php/Unofficial_user_repositories#archzfs)
+pacman-key -r DDF7DB817396A49B2A2723F7403BD972F75D9D76
+pacman-key --lsign-key DDF7DB817396A49B2A2723F7403BD972F75D9D76
 
-[archzfs]
-Include = /etc/pacman.d/archzfs_mirrorlist
+#then you can choose either zfs-dkms or zfs-linux:
 
-nano /etc/pacman.d/archzfs_mirrorlist
 
-Server = https://archzfs.com/$repo/$arch
-Server = https://mirror.sum7.eu/archlinux/archzfs/$repo/$arch
-Server = https://mirror.biocrafting.net/archlinux/archzfs/$repo/$arch
-Server = https://mirror.in.themindsmaze.com/archzfs/$repo/$arch
-Server = https://zxcvfdsa.com/archzfs/$repo/$arch
+pacman -S zfs-dkms
 
-#if it doesn't exist
-mkdir -p /usr/share/pacman/keyrings
-
-touch /usr/share/pacman/keyrings/archzfs-trusted
-echo "DDF7DB817396A49B2A2723F7403BD972F75D9D76:4:" | tee -a /usr/share/pacman/keyrings/archzfs-trusted
-
-pacman -S zfs-linux
+# or
+pacman -S zfs-linux zfs-linux-headers
 
 
 # edit /etc/pacman.conf
