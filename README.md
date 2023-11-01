@@ -32,7 +32,7 @@ mv /releng/ zfsiso
 cd # when executed alone should take you back to the previous folder, which in this case is the ~
 ```
 
-I you don't have any AUR helped such as yay or paru, then you need to get one or youc can follow these steps. Just skip if you already have. Futhermore, you do not have to put them in ´/opt`
+I you don't have any AUR helped such as yay or paru, then you need to get one or youc can follow these steps. Just skip if you already have. Futhermore, you do not have to put the AUR's in `/opt` and put them where you like. Just remember go back to the home directory `~` before you continue if you do so, unless you use another location as reference.
 ```bash
 cd /opt
 
@@ -47,20 +47,25 @@ makepkg -si PKGBUILD
 
 cd ~
 ```
-# skip to here if you do have yay/paru or if you are done with these steps
+If you do have yay/paru or if you are done with these steps, you can continue from here.
 
-#now we clone zfs-dkms and zfs-utils which we will need
+Now we need to get 2 important packages for our custom .iso file. We need to get the `zfs-dkms` and `zfs-utils` from the AUR (Arch User Repository).
+
+It may take a few minutes to build both packages.
+
+```bash
+sudo pacman -S git # if you do not have git installed already
+
 git clone https://aur.archlinux.org/zfs-dkms.git
 
 cd zfs-dkms/
 
-#you should probably not pass --skippgpcheck for security, but here it is
-# if the laziness of saving some time prevails
+You should probably not pass --skippgpcheck for security reasons, but if saving time where you can is your cup of tea you can do so like this
+
 makepkg --skippgpcheck
 
-cd
+cd # should take you back to ~
 
-#we do the same for this package
 git clone https://aur.archlinux.org/zfs-utils.git
 
 cd zfs-utils/
@@ -69,17 +74,17 @@ makepkg --skippgpcheck
 
 cd
 
-# now we go back to the build dir
-cd /ISOBUILD/zfsiso
+cd /ISOBUILD/zfsiso # if you use the same directories, then you should be at ~/ISOBUILD/zfsiso
 
-# create a dir for the zfs repo
+# Next, we need to make a directory for the zfs repository
+
 mkdir zfsrepo
 
 cd zfsrepo
 
-# next, we copy all the .zst filles from then two packages we built
-# which we will need for the iso creation
-cp ~/zfs-dkms/*.zst .
+# next, we copy all the .zst filles from then two packages we built to this location
+
+cp ~/zfs-dkms/*.zst . # copies the .zst files from the directories we built them in, i.e., `~`
 
 cp ~/zfs-utils/*.zst .
 
