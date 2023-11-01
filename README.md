@@ -11,37 +11,32 @@ Therefore, this guide assumes that you already have arch installed and device su
 
 # Creating the custom arch-iso
 
-```zsh
-sudo pacman -S archiso
-```
+```bash
+sudo pacman -S archiso # important package that we need to build the customized arch iso image
+
+cd ~ # this is important if you want to just copy and paste from this guide (since the home folder will be used as reference
 
 mkdir ISOBUILD
 
-#this is the dir we create to make the .iso file in
-
 cp -r /usr/share/archiso/configs/releng ISOBUILD/
+```
+This copies files from the archiso recursively into our build dir
 
-# copies files from the archiso recursively into our build dir
-
+```bash
 cd ISOBUILD
 
 #rename the dir to zfsiso
 mv /releng/ zfsiso
 
-cd
+cd # when executed alone should take you back to the previous folder, which in this case is the ~
+```
 
-# executing "cd" alone takes us back to the home dir where we will need to
-# clone 2 packages from the AUR, which we will need to build the custom
-# arch zfs-iso
-
-# if you don't have any AUR helped such as yay or paru, 
-# if you do, ignore this step, then do the following:
-
+I you don't have any AUR helped such as yay or paru, then you need to get one or youc can follow these steps. Just skip if you already have.
+```
 cd /opt
 
 sudo git clone https://aur.archlinux.org/yay.git
 sudo git clone https://aur.archlinux.org/paru-bin.git
-
 sudo chmod -R u+rwx /opt
 cd /yay
 makepkg -si PKGBUILD
@@ -50,6 +45,7 @@ cd /paru-bin
 makepkg -si PKGBUILD
 
 cd ~
+```
 # skip to here if you do have yay/paru or if you are done with these steps
 
 #now we clone zfs-dkms and zfs-utils which we will need
