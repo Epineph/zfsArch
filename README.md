@@ -7,17 +7,79 @@ Therefore, in additon to sharing some of the advantageous features provided by t
 # Prerequisites
 
 **The official arch-iso cannot** be used to install an arch-linux based zfs/Solaris OS architecture. **However**, if you already have an Arch installation (regardless of what filesystem type you are using), then you can start following the instructions given here, since I include the process of making the custom arch iso file file you will need. So, the first part deals with creating iso subsequently used as the **bootable installation medium for Arch based on zfs**.
-Need to do this on a previous arch installation
+ 
+I will not include a guide on installing arch on one of the typically used and officially supported filesystems, i.e,, if you don't have arch linux, then you must first install it using a filesystem which is available when using the official .iso image.
+One popular choice is ext4. Btrfs is also quite popular (provides similar
+features to zfs, like logical volume management, compression and more, though,
+zfs can do all of those too, but even faster, and includes additinal features)
+.
+
+If you have never installed arch, or if you are very new to it and unfortable 
+doing the installation without relying entirely on a script, then it is
+probably a good idea to not use btrfs the first time you do it, but rather ext4,
+which isn't that different and mostly differs in setting up the drives. If
+installing it without a script seems unconfortable, you should probably
+reconsider and not start out by using zfs. You don't need to an arch enthusiast
+or know a great deal about arch itself if you have a good understanding
+of linux in general. 
+
+One of the distinguising aspects of arch that can make it seem very different
+than other linux distributions is that less is pre-decided and hence requires the user 
+to configure it, which requires a bit more attention to the filesystem structure 
+and functions, which ironically is mostly the same irrespective of which linux distribution
+you are using. Therefore, things that are perceived to be very different between distributions
+may reflect small differences in the philosophy guiding their respective develooment
+teams, and may therefore not reflect any actual significant difference inherently
+different. Therefore, I would not argue that much or any experience is needed using
+arch if you have a solid grasp on the fundamental concepts in linux, and if you want
+a zfs filesytem-based sytem, this would important than being able to memorise
+how to install arch without a script.
+
+This is important, because if you choose to use zfs for a long-term installation,
+you need to consider that it isn't officially supported by arch, and there
+are not guides on each problem you may face and therefore be comfortable
+when you find that stackoverflow rarely has a relevant answer to you,
+and maybe sometimes get lucky finding an extremely user-unfriendly find
+in one of the obscure corners of the internet. Be comfortable doing a lot of
+problem-solving yourself. If so, this may be a fine choice even if you have
+never used arch. 
+
+In theory, if this seems comfortable and acceptable risk to you,
+it doesn't really matter if you are new to arch, since the only reason you need 
+it here is to access the AUR (Arch Linux Distribution). You can therefore cheat
+a bit if you want a quick installation, since manjaro is installed in a similar
+fasion to most linux distributions, by that I mean a user-friendly .iso,
+and also an arch based derivative and provides access to the AUR.
+
+# Why do this?
+
+Again, since zfs is neither officially supported by arch nor available as a filesystem 
+available on the officially supported images of any linux distribution!
+Although a few projects currently exist using zfs OS architectureand and actively
+developed, it is not publicallly avaiable as the os on computers.
+Therefore, arch wiki or guides to do certain sections may not be applicable,
+despite the vastness of the arch wiki. 
+
+So why this sacrifise? remember, the goal is to get the zfs-filesystem, 
+which is, like linux, based on unix. Therefore, the outcome is to get the
+zfs OS architecture and its great and attractive features, and since we 
+install it on arch, you will additionally get access to great features such
+as the AUR as a bonus. This comeas at the cost of not always having
+the answer readily available at your fingertios. Although zfs was relased 
+in 2005 as the OS system on computers available to the public and was
+upported as OpenSolaris, active development stopped in 2010 after Oracle 
+acquired it, so the zfs-filesystem hasn't been a part of any 
+officially supported project available for the public for over a decade. 
 
 
-thingsusing officially supported image and install it on one of the officially supported linux filesystems, i.e., it is neither officially supported by arch and it is not available as a filesystem on the officially supported images of any linux distribution at all, although many projects currently exist and it may therefore at some point fall into that category. This is not to say that you need to be able installing arch by relying on memory only, but rather that you do have some familiarity with installing arch without a script and comfortable doing so, despite having to use the arch wiki or guides to do certain sections or even most of it. The imortant aspect is not how much one is able to memorise, but rather that having a good understanding of linux in general and being comfortable with not necessarily having a easy fix when solving problems. I want to emohasize again being able to install arch based on memory alone is mot important in itself, and there is nothing inherently wrong with using scripts (if you use linux and you don't use scripts, then you are most certainly doing something wrong. The important aspect is understanding the script, not how how much in it you can memorise. By that I mean, you understand the concepts and you feel comfortable having to rely on your understand, i.e., feel comfortable having to changing the script, if somethink unexpected happened, or making changes so that it better can serve your personal needs and be comfortble with relying on your own understading when no hits show up on stack overflow on how to solve your particular problem. 
+However, active development has never stopped since 2010, and and is being 
+used by Oracle and officially in the sense that the zfs-filesystem architecture 
+but it is nevertheless not available as the os on computers officially. In fact, 
+the original codebase began in the early 1980's and was released by 
+Sun Microsystems as operating system on computers for the first time in 1991. So, 
+the zfs-filesystem has been actively developed for around 42 years and despite early development starting only a few years after Windows was founded, and is being praised for being extremely well developed, which is hardly surprising for a file-system that has been under development, in some form or another, for around 40 years. One could argue that this should be ecpected for a operating system whose active development timeframe next big milestone is reaching a half century.
 
-I don't mention these things because there is anything impressive about being able to install a zfs-based system on arch, but it is necessary and relevant when you decide to install a file-system that isn't available and officially supported by any linux distribution, and I probably don't need to tell you that if it isn't available in any officially supported linux distribution, then it isn't available on Mac and Windows either. Although it was relased in 2005 and officially upported as OpenSolaris, active development stopped in 2010 after Oracle acquired it, so the zfs-filesystem hasn't been a part of any officially supported project available for the public for over a decade. However, active development has never stooped stopped since 2010, it is being used by Oracle and is being used by Oracle and officially in the sense that the zfs-filesystem architecture is being used in in a limited number of projects, mostly related to metwork storage, it has during all this time just never been a part a project released to the public. In fact, the original codebase began in 1980 and was released by Sun Microsystems as operating system on computers for the first time in 1991. So, the zfs-filesystem has been actively developed for around 42 years and despite early development starting only a few years after Windows was founded, and is being praised for being extremely well developed, which is hardly surprising for a file-system that has been under development, in some form or another, for around 40 years. One could argue that this should be ecpected for a operating system whose active development timeframe next big milestone is reaching a half century.
-
-Therefore, this guide assumes that you already have arch installed and device such as a usb on which the .iso will be installed as a bootable installation medium.
-
-Keep in mind that you do not have to put the files in the folders used here. However, the commands are written so that you can copy-and-paste your way through the guide, assuming that you do not change directory to other folders in between. I recommend that you do not start as root, in which case ~ will be interpreted with respect to root and not the user
-# Creating the custom arch-iso
+Therefore, this guide assumes that you already have arch installed and device such as a usb on which the .iso will 
 
 ```bash
 sudo pacman -S archiso # important package that we need to build the customized arch iso image
