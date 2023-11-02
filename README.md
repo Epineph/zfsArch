@@ -421,12 +421,15 @@ echo "Server = file:///home/heini/ISOBUILD/zfsiso/zfsrepo" | sudo tee -a /home/h
 
 ```
 
-Lastly, we create two additiional directories
+Lastly, we create two additiional directories to be created for our
+custom .iso
 
 ```bash
 # you are expected to be at ~/ISOBUILD/zfsiso
 
 mkdir {WORK,ISOOUT}
+
+Trhat is to say, mkfs ~/ISOBUILD/zfsisi/{WORK,ISOOUT}
 ```
 
 Before changin to root (and do not change location prior to this)
