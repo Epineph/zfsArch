@@ -252,14 +252,6 @@ sudo chmod u+rw /path/to/file
 
 sudo chmod -R u+rw /opt
 
-# ------- a "short" comment on changing permissions and/or recursive operations
-# SKIP if you have been using linux for a while or aleast somewhat familiar with it
-# ONLY RELEVANT if your new and therefore not likely to bere at all!
-# If you are new, you may want to reconsider installing another filesystem
-you may find it helpful but you would not probabably not
-# b
-
-
 # Whereas changing permissions at /opt is safe, changing permissions
 # at locations that have restricted permissions can be problematic
 # and in some cases wreak havoc on your system. In many cases, problems
@@ -331,6 +323,12 @@ cd zfs-utils/
 makepkg --skippgpcheck
 
 cd
+```
+
+Now we have built the important packages needed to build the iso,
+so we go back to building it
+
+```bash
 
 cd /ISOBUILD/zfsiso # if you use the same directories, then you should be at ~/ISOBUILD/zfsiso
 
@@ -342,50 +340,108 @@ cd zfsrepo
 
 # next, we copy all the .zst filles from then two packages we built to this location
 
-cp ~/zfs-dkms/*.zst . # copies the .zst files from the directories we built them in, i.e., `~`
+# copies the .zst files from the directories we built them in, i.e., `~`,
+# to the location we are currently in, specified by ` .`
+
+cp ~/zfs-dkms/*.zst . # which here is equivalent to 
+# writing cp ~/zfs-dkmt/*.zst ~/ISOBUILD/zfsiso/zfsrepo
 
 cp ~/zfs-utils/*.zst .
 
 ls -al
+```
 
+```bash
 # Create the database
 
 repo-add zfsrepo.db.tar.gz *.zst
 
 cd ..
 
+# should take you to ~/ISOBUILD/zfsiso
+
 sudo nano packages.x86_64
+```
 
-# add this in the bottom:
+add the following in the bottom of /etc/pacman.conf
+you can use sudo nano/vim /etc/pacman.conf
 
-# ZFS Custom  Repo
+```bash
+[zfsrepo]
+SigLevel = Optional TrustAll
+Server = file:///home/heini/ISOBUILD/zfsiso/zfsrepo
+```
 
+or
+
+```bash
+echo "[zfsrepo]" | sudo tee -a /etc/pacman.conf
+echo "SigLevel = Optional TrustAll" | sudo tee -a /etc/pacman.conf
+echo "Server = file:///home/heini/ISOBUILD/zfsiso/zfsrepo" | sudo tee -a /etc/pacman.conf
+```
+
+We need to include the packages we built in the custom .iso
+
+add these lines to ~/ISOBUIKD/zfsiso/packages.x86_64
+
+```bash
+# [ZFS Custom  Repo]
 linux-headers
 zfs-dkms
 zfs-utils
 
 #alternatively, use tee to append these lines
+
+echo "# [ZFS Custom Repo]" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
 echo "linux-headers" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
 echo "zfs-dkms" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
 echo "zfs-utils" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
+```
 
-# edit pacman.configs
+```bash
+# edit custom repository
 
-sudo nano pacman.conf
+sudo nano /etc/pacman.conf
 
 # add this custom repository in the buttom like this:
 
 [zfsrepo]
 SigLevel = Optional TrustAll
 Server = file:///home/heini/ISOBUILD/zfsiso/zfsrepo
-#remember to swap heini with your username
 
+#remember to change /home/heini/ with your username
+# to make sure, then:
 
-#next, we create two additiional directories
+cd /ISOBUID/zfsiso/zfsrepo
+pwd # should return the path of location
+
+echo "[zfsrepo]" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
+echo "SigLevel = Optional TrustAll" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
+echo "Server = file:///home/heini/ISOBUILD/zfsiso/zfsrepo" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
+
+```
+
+Lastly, we create two additiional directories
+
+```bash
+# you are expected to be at ~/ISOBUILD/zfsiso
+
 mkdir {WORK,ISOOUT}
+```
+
+Before changin to root (and do not change location prior to this)
+
+Ensure that you do not lack any permissions iso
+
+```bash
+chmod -R +rw ~/ISOBUILD/
+
+```
 
 #change to root
-#do not change dir. If you are lost, go back to /home/heini/ISOBUILD/zfsiso
+
+
+#do not change directory beforw going to root. If you are lost, go back to /home/heini/ISOBUILD/zfsiso
 
 su root
 
