@@ -789,29 +789,40 @@ mkdir -p /mnt/{etc/zfs,boot/efi}
 
 cp /etc/zfs/zpool.cache /mnt/etc/zfs/zpool.cache
 
-mount /dev/nvme0n1p1 /mnt/boot/efi
+# mount the /mnt/boot/efi
 
+```bash
+mount /dev/nvme0n1p1 /mnt/boot/efi
 
 pacman -Syy
 
-
 pacstrap /mnt base base-devel amd-ucode git linux linux-headers linux-firmware linux-firmware-whence dkms sudo nano vim grub efibootmgr networkmanager reflector mtools dosfstools wpa_supplicant
 
-At this point, we create and and enable the swap
+```
+At this point, we create and it is important to note that since I chose to stripe root partition, the swap
+will be as well. pay attention to that we haven't made a swap partition, or indeed 2 8gb swap partitions, with 8gb being striped
+from each physical device.  but that is fine, since you can in your imagination think that manages this by using 8gb from each root partition for swiping. Again, these layers of abstraction work differently on zfs and just truat if you have installed it correctly,
+you will find that everything is handled properly by zfs.
 
-# Now we create a swap partition
+```bash
+zfs create -V 16G -b $(getconf PAGESIZE) -o logbias=throughput -o sync=always -o primarycache=metadata -o com.sun:auto-snapshot=false rpool/swap
+mkswap -f /dev/zvol/rpool/swap
+swapon /dev/zvol/rpool/swap
+```
 
+then as usual:
 
+```bash
 genfstab -U -p /mnt >> /mnt/etc/fstab
 
 cp /etc/pacman.d/mirrorlist /mnt/etc/pacman.d/mirrorlist.backup
 
 arch-chroot /mnt
-
+```
 
 cat /etc/fstab
 
-# comment-out all zroot entries
+# comment-out all zroot entries except boot
 
 nano /etc/pacman.conf
 # go to the bottom and add the following:
