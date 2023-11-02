@@ -14,13 +14,29 @@ to use a mirrored setup, and whether you would like to be striping or
 mirroring two physical drives, or perhaps you only install it into
 one hard-drive/single partition of a hard drive. 
 
+## the guide is purposefully made to keep flexibility in mind
+
+There will be points at which you cann choose one of several branches (because
+they are important to zfs and what you want to gain from it, for example when choosing
+whether to be mirroring or striping two ohysical hard-drives). There will be certain
+points at which an option is forced un that choosing a different route means that 
+you must ne comfortable knowimg how it, and whether it, affects other options. 
+This is only done when there are countless options, and one of them allows for as much
+flexibility for the user and, when possible, being none-restrictive with respect to 
+how it affects options that are completely unrelated to the installation,
+i.e., choosing another option would affect options that are completely unrelated
+to this installation, implying dependence between options with no obvious corretion. 
+Such noise will be avoided when possible.
+
 I will try to indicate where those decisions are made, and while I will
 only go with one of them for consitency, you should be able to follow
 along regardless and, if nothing else is indicated, presume that you can proceed
 to use the following lines of code regardless of what decision you made,
 if you followed the insturctions at points where they branch out (though
 remember to use the labelling of, for example, hard-drives are they appear
-to you), which may differ from how it appears to me.
+to you), which may differ from how it appears to me, then you should be able
+to continue regardless if you choose another option than provided here, given
+that you do not deviate in any significant way.
 
 This guide takes into consideration that users might have partitions containing
 other linux filesystems as well as windows, and hence is made to be
@@ -94,7 +110,22 @@ it doesn't really matter if you are new to arch, since the only reason you need
 it here is to access the AUR (Arch Linux Distribution). You can therefore cheat
 a bit if you want a quick installation, since manjaro is installed in a similar
 fasion to most linux distributions, by that I mean a user-friendly .iso,
-and also an arch based derivative and provides access to the AUR.
+and also an arch based derivative and provides access to the AUR. Therefore,
+using it to make iso and continue should not be an issue. 
+
+Though keep in mind that in manjaro you do not use
+
+```
+sudo pacman -S packag
+```
+
+Instead, if using manjaro, use:
+
+```
+sudo pamac -S package
+```
+
+Otherwise I think it should work. If not, then you have to jnstall arch.
 
 # Why do this?
 
