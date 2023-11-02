@@ -1,6 +1,51 @@
 # zfs-filsystem based Arch-linux installaion
 
-This started out as my own notes, but once that I figured out how complex the installation process can be, especially since one has to understand that the information provided to you by commands such as `lsblk -l`, can seem to be at odds with what actually is happening. ZFS is an advanced filesystem created by Sun Mircosystems which has been acquired by Oracle and was relased for OpenSolaris in 2005. Hence, the filesystem architecture is also known as a *Solaris OS Structure*, which includes several advanced and beneficial features such as pooled storage (integrated volume management or `zpool`, Copy-on-write (COW), Snapshots, RAID-Z  (Redundant Array of Independent Disks) which is similar to RAID-5 etc., in that it provides increased write buffering for performance, but is different in that it is even faster and eliminiates what is known as write-hole error. Furthermore, unlike RAID-5, it does not rely on special hardware for reliabiliry or write buffering for performance.
+This started out as my own notes, but once that I figured out how 
+complex the installation process can be, especially since one has 
+to understand that the information provided to you by commands 
+such as `lsblk -l`, can seem to be at odds with what actually 
+is happening. When you are ready to run `pacstrap /mnt', lsblk
+will display that nothing is mounted to /mnt, but since zfs handles
+many things as a layered abstraction, you can trust that zfs is handling
+it as if that was the case, given that you haven't made a mistake,
+or that I haven't misguided you - remember, in certain sections, 
+you have to make some important descisions, like choosing whether or not
+to use a mirrored setup, and whether you would like to be striping or
+mirroring two physical drives, or perhaps you only install it into
+one hard-drive/single partition of a hard drive. 
+
+I will try to indicate where those decisions are made, and while I will
+only go with one of them for consitency, you should be able to follow
+along regardless and, if nothing else is indicated, presume that you can proceed
+to use the following lines of code regardless of what decision you made,
+if you followed the insturctions at points where they branch out (though
+remember to use the labelling of, for example, hard-drives are they appear
+to you), which may differ from how it appears to me.
+
+This guide takes into consideration that users might have partitions containing
+other linux filesystems as well as windows, and hence is made to be
+grub compatible for dual booting. **This means that the guide is made to
+be compatible with that option**, but whether or not you are dual booting has
+no impact on anything **it doesn't force any option**. Often there can be a dozen of
+ways to configure it, which can cause several unique ways to proceed at that point.
+
+Therefore, I try to make make some decisions for simplicity
+that allow or otherwise do not restrict other options or considerations that 
+are not specific to this guide, but it doesn't mean that you have to do it
+(I suppose that using systemd can be used as bootloader if you choose to do
+that), just trust that you know and take into consideration how the points at
+which you deviate from my structions affect, if at all, any subsequent actions,
+so be mindful of both the operations as well as the order of operationa, which
+potentially can be important and inform you as they can be dependent on eachother.
+That means that I do at some points force or restrict the user to use a certain command
+at a specific place, and that you cannot continue without knowing how not choosing
+the same option affects what you do next. But such decisiins are purpossefully made
+to be as none-restrictive as possible (with regards to both the installation
+and how it affects things you might need to use the hard-drive for, but
+have mothing to do with this guide). Otherwise, the guide risks being for confusinf
+rather than guiding you. 
+
+ZFS is an advanced filesystem created by Sun Mircosystems which has been acquired by Oracle and was relased for OpenSolaris in 2005. Hence, the filesystem architecture is also known as a *Solaris OS Structure*, which includes several advanced and beneficial features such as pooled storage (integrated volume management or `zpool`, Copy-on-write (COW), Snapshots, RAID-Z  (Redundant Array of Independent Disks) which is similar to RAID-5 etc., in that it provides increased write buffering for performance, but is different in that it is even faster and eliminiates what is known as write-hole error. Furthermore, unlike RAID-5, it does not rely on special hardware for reliabiliry or write buffering for performance.
 
 Therefore, in additon to sharing some of the advantageous features provided by the linux **btrfs** filesystem, it provides some unique features what can best be exploited by having more than one disks. You can install zfs even if you only have one hard-drive, and many of the useful features of zfs can still be enjoyed, but having more than one disk will allow you to, for example, benefit from having better performance and data redundancy or *mirroriing*, but you can also opt to just maxizing performance using *striping*, which however comes at the cost of no additional data redundancy.
 
