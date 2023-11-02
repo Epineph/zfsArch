@@ -7,6 +7,10 @@ Therefore, in additon to sharing some of the advantageous features provided by t
 **The official arch-iso cannot** be used to install an arch-linux based zfs/Solaris OS architecture. **However**, if you already have an Arch installation (regardless of what filesystem type you are using), then you canfollow the instructions here to **create the custom iso**, which can subsequently used as a **bootable installation medium for Arch based on zfs**.
 Need to do this on a previous arch installation
 
+If you do not have a previous arch installation or new to arch, you may want to consider installing it on another filesystem. If you require a guide to install the official arch linux, of if you would require one to do so without using the official archinstall script, or if you need to rely on any script and require a guide to do a scripless installation, you may want to get familiar with a scriptless installation of arch using officially supported image and install it on one of the officially supported linux filesystems, i.e., it is neither officially supported by arch and it is not available as a filesystem on the officially supported images of any linux distribution at all, although many projects currently exist and it may therefore at some point fall into that category. This is not to say that you need to be able installing arch by relying on memory only, but rather that you do have some familiarity with installing arch without a script and comfortable doing so, despite having to use the arch wiki or guides to do certain sections or even most of it. The imortant aspect is not how much one is able to memorise, but rather that having a good understanding of linux in general and being comfortable with not necessarily having a easy fix when solving problems. I want to emohasize again being able to install arch based on memory alone is mot important in itself, and there is nothing inherently wrong with using scripts (if you use linux and you don't use scripts, then you are most certainly doing something wrong. The important aspect is understanding the script, not how how much in it you can memorise. By that I mean, you understand the concepts and you feel comfortable having to rely on your understand, i.e., feel comfortable having to changing the script, if somethink unexpected happened, or making changes so that it better can serve your personal needs and be comfortble with relying on your own understading when no hits show up on stack overflow on how to solve your particular problem. 
+
+I don't mentiom these things because there is anything impressive about being able to install a zfs-based system on arch, but it is necessary and relevant when you decide to install a file-system that isn't available and officially supported by any linux, and it isn't available in any 
+
 Therefore, this guide assumes that you already have arch installed and device such as a usb on which the .iso will be installed as a bootable installation medium.
 
 Keep in mind that you do not have to put the files in the folders used here. However, the commands are written so that you can copy-and-paste your way through the guide, assuming that you do not change directory to other folders in between. I recommend that you do not start as root, in which case ~ will be interpreted with respect to root and not the user
@@ -36,16 +40,77 @@ I you don't have any AUR helped such as yay or paru, then you need to get one or
 ```bash
 cd /opt
 
+sudo pacman -S git # if git isn't already installed on your system
+
+
 sudo git clone https://aur.archlinux.org/yay.git
 sudo git clone https://aur.archlinux.org/paru-bin.git
-sudo chmod -R u+rwx /opt
+
+# users generally have restricted permissions at /opt 
+# you can therefore most likely not allowed clone packages
+# to this clone packages to this location without using sudo. 
+# To give the user 'u' read 'r' and 'write', you can:
+
+sudo chmod u+rw /path/to/file
+
+# to change permission to read and write more than one file, or
+# indeed to all files residing in /opt you can pass -R to resursively change
+# permission for all files in this folder and all subdirectories within it:
+
+sudo chmod -R u+rw /opt
+
+# ------- a "short" comment on changing permissions and/or recursive operations
+# SKIP if you have been using linux for a while or aleast somewhat familiar with it
+# ONLY RELEVANT if your new and therefore not likely to bere at all!
+# If you are new, you may want to reconsider installing another filesystem
+you may find it helpful but you would not probabably not
+# b
+
+
+# Whereas changing permissions at /opt is safe, changing permissions
+# at locations that have restricted permissions can be problematic
+# and in some cases wreak havoc on your system. In many cases, problems
+# caused by changed permissions are reversible, but it can be challenging
+# or, and I can confirm from experience, it can lead to you finding yourself
+# re-installing linux. Therefore, in situations where you are prevented from
+# doing something due to restricted permissions, despite it being safe more 
+# often than not to change permission, there may be a good reason for those 
+# restrictions being there, and it is advisable to check before doing so, and
+# this is especially if you pass the -R argument, since you may not know
+# if a subdirectory or a subdirectory has a subdirectory whose subdirectory
+# has a subdirectory which causes problems to its subdirectories or your 
+# entire system. 
+
+# When you choose to do something recursively like chmod,
+# you need to consider that you may not know about all of the files you are 
+# affecting, or that your just changed or affected 100 or 10.000 files
+# you had no clue were there in the first place.
+
+
 cd /yay
-makepkg -si PKGBUILD
-cd ..
+
+# to install yay which is a popular AUR helper, then
+
+makepkg -si PKGBUILD # or simply 'makepkg -si'
+
+# another popular option paru. Since you do not need several
+# AUR helpers, you can just skip the next three commands
+# If you want paru instead or if you want both (you are not required
+# have more than one, but you are not restricted to having 
+# two or more either):
+
+cd .. # to put you back to /opt or cd to directory you cloned it in
+
 cd /paru-bin
+
 makepkg -si PKGBUILD
 
-cd ~
+
+# if you are done installing your preferred AUR helper, both
+# or already had an AUR helper installed, then proceed from here and
+
+cd ~ # to go back to your home directory if you are /opt or anywhere else 
+# than ~
 ```
 If you do have yay/paru or if you are done with these steps, you can continue from here.
 
