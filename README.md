@@ -576,7 +576,7 @@ mkfs.btrfs /dev/nvme0nX
 
 modprobe zfs
 
-lsmod | grep i zfs
+lsmod | grep -i zfs
 
 # if you do not plan to use a mirrored partition, which may improve
 # write and read speed by increasing the bandwith, but at the cost of
