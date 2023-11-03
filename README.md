@@ -168,7 +168,7 @@ using it to make iso and continue should not be an issue.
 Though keep in mind that in manjaro you do not use:
 
 ```
-sudo pacman -S packag
+sudo pacman -S package
 ```
 
 Instead, if using manjaro, use:
@@ -212,7 +212,13 @@ Therefore, this guide assumes that you already have arch installed and device su
 ```bash
 sudo pacman -S archiso # important package that we need to build the customized arch iso image
 
-cd ~ # this is important if you want to just copy and paste from this guide (since the home folder will be used as reference
+cd ~ # this is important if you want to just copy and paste from this guide
+# (since the home folder will be used as reference)
+# the home folder for users, i.e., /home/<your_username>/
+# is equivalent to `~´, so despite I my edit /home/myname
+# and you are editimg files in /home/yourname, it shouldn't
+# because ~/folder/subfolder and all the files are relative
+# to whatever the username is on your computer
 
 mkdir ISOBUILD
 
@@ -226,7 +232,12 @@ cd ISOBUILD # this should be located in ~/ISOBUILD or /home/<yourusername>/ISOBU
 #rename the dir to zfsiso
 mv /releng/ zfsiso
 
-cd # when executed alone should take you back to the previous folder, which in this case is the ~
+cd 
+
+# when executed alone should take you back to the previous folder, 
+# which in this case is the ~
+# be mindful that if you jump to other folders in between
+# it will take you back to your previous folder
 ```
 
 I you don't have any AUR helped such as yay or paru, then you need to get one or youc can follow these steps. Just skip if you already have. Futhermore, you do not have to put the AUR's in `/opt` and put them where you like. Just remember go back to the home directory `~` before you continue if you do so, unless you use another location as reference.
@@ -383,6 +394,7 @@ echo "Server = file:///home/heini/ISOBUILD/zfsiso/zfsrepo" | sudo tee -a /etc/pa
 We need to include the packages we built in the custom .iso
 
 add these lines to ~/ISOBUIKD/zfsiso/packages.x86_64
+Don't replace the text in it, but append the lines at the bottom
 
 ```bash
 # [ZFS Custom  Repo]
@@ -391,7 +403,6 @@ zfs-dkms
 zfs-utils
 
 #alternatively, use tee to append these lines
-
 echo "# [ZFS Custom Repo]" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
 echo "linux-headers" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
 echo "zfs-dkms" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
