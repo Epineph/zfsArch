@@ -168,7 +168,7 @@ using it to make iso and continue should not be an issue.
 Though keep in mind that in manjaro you do not use:
 
 ```
-sudo pacman -S package
+sudo pacman -S packag
 ```
 
 Instead, if using manjaro, use:
@@ -212,13 +212,7 @@ Therefore, this guide assumes that you already have arch installed and device su
 ```bash
 sudo pacman -S archiso # important package that we need to build the customized arch iso image
 
-cd ~ # this is important if you want to just copy and paste from this guide
-# (since the home folder will be used as reference)
-# the home folder for users, i.e., /home/<your_username>/
-# is equivalent to `~´, so despite I my edit /home/myname
-# and you are editimg files in /home/yourname, it shouldn't
-# because ~/folder/subfolder and all the files are relative
-# to whatever the username is on your computer
+cd ~ # this is important if you want to just copy and paste from this guide (since the home folder will be used as reference
 
 mkdir ISOBUILD
 
@@ -232,12 +226,7 @@ cd ISOBUILD # this should be located in ~/ISOBUILD or /home/<yourusername>/ISOBU
 #rename the dir to zfsiso
 mv /releng/ zfsiso
 
-cd 
-
-# when executed alone should take you back to the previous folder, 
-# which in this case is the ~
-# be mindful that if you jump to other folders in between
-# it will take you back to your previous folder
+cd # when executed alone should take you back to the previous folder, which in this case is the ~
 ```
 
 I you don't have any AUR helped such as yay or paru, then you need to get one or youc can follow these steps. Just skip if you already have. Futhermore, you do not have to put the AUR's in `/opt` and put them where you like. Just remember go back to the home directory `~` before you continue if you do so, unless you use another location as reference.
@@ -394,7 +383,6 @@ echo "Server = file:///home/heini/ISOBUILD/zfsiso/zfsrepo" | sudo tee -a /etc/pa
 We need to include the packages we built in the custom .iso
 
 add these lines to ~/ISOBUIKD/zfsiso/packages.x86_64
-Don't replace the text in it, but append the lines at the bottom
 
 ```bash
 # [ZFS Custom  Repo]
@@ -403,6 +391,7 @@ zfs-dkms
 zfs-utils
 
 #alternatively, use tee to append these lines
+
 echo "# [ZFS Custom Repo]" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
 echo "linux-headers" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
 echo "zfs-dkms" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
@@ -626,6 +615,11 @@ zpool create -f -o ashift=12 \
 zroot /dev/nvme0n1p4
 
 
+zpool create -o ashift=12 -d \
+-o compatibility=grub2 \
+-R /mnt /dev/sdx1 /dev/sdy1
+
+
 #Compression and native encryption
 
 #This will enable compression and native encryption by default on all datasets:
@@ -770,11 +764,11 @@ zpool create -o ashift=12 \
 
 #3. Now, proceed with your dataset creations:
 
-zfs create -o mountpoint=none rpool/data
-zfs create -o mountpoint=none rpool/ROOT
-zfs create -o mountpoint=/ -o canmount=noauto rpool/ROOT/default
-zfs create -o mountpoint=/home rpool/data/home
-zfs create -o mountpoint=/var -o canmount=off rpool/var
+zfs create -o mountpoint=none zroot/data
+zfs create -o mountpoint=none zroot/ROOT
+zfs create -o mountpoint=/ -o canmount=noauto zroot/ROOT/default
+zfs create -o mountpoint=/home zroot/data/home
+zfs create -o mountpoint=/var -o canmount=off zroot/var
 
 
 zfs create zroot/var/log
@@ -786,6 +780,8 @@ zfs create zroot/var/lib/docker
 zpool export zroot
 
 zpool import -d /dev/nvme0n1p4 -R /mnt zroot -N
+
+# zpool import zroot -R /mnt
 
 zfs mount zroot/ROOT/default
 zfs mount -a
@@ -816,9 +812,9 @@ from each physical device.  but that is fine, since you can in your imagination 
 you will find that everything is handled properly by zfs.
 
 ```bash
-zfs create -V 16G -b $(getconf PAGESIZE) -o logbias=throughput -o sync=always -o primarycache=metadata -o com.sun:auto-snapshot=false rpool/swap
-mkswap -f /dev/zvol/rpool/swap
-swapon /dev/zvol/rpool/swap
+zfs create -V 16G -b $(getconf PAGESIZE) -o logbias=throughput -o sync=always -o primarycache=metadata -o com.sun:auto-snapshot=false sroot/swap
+mkswap -f /dev/zvol/zroot/swap
+swapon /dev/zvol/zroot/swap
 ```
 
 then as usual:
@@ -976,5 +972,4 @@ nano reflector.conf
 --latest 5
 --sort rate
 --save /etc/pacman.d/mirrorlist
-
 
