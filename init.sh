@@ -217,22 +217,32 @@ mkdir {WORK,ISOOUT}
 
 # Ensure that you do not lack any permissions iso
 
-chmod -R +rw ~/ISOBUILD/
+chmod -R +rwx ~/ISOBUILD/ # rwx gives read, write and execute permissions
 
+# we want to do the same for root, so before changing
+# assign the location if the iso to a variable since "~" means
+# /root for root. So first we store the value as user
+
+cd ~/ISOBUILD/zfsiso
+
+ISO_dir=$(pwd)
 #change to root
 
-
-#do not change directory beforw going to root. If you are lost, go back to /home/heini/ISOBUILD/zfsiso
-
 su root
+
+
+chmod -R +rwx ISO_dir
+
 
 #this will build this custom .iso
 mkarchiso -v -w WORK -o ISOOUT .
 
 # create bootable usb medium from the custom arch .iso we just created
 
-cp /home/heini/ISOBUILD/zfsiso/ISOOUT/archlinux-2023.10.31-x86_64.is
-o /dev/sda
+lsblk
+
+cp ~/ISOBUILD/zfsiso/ISOOUT/archlinux-2023.10.31-x86_64.is /dev/sdX
+# X is a placeholder for what your usb is called. 
 
 reboot
 
@@ -244,10 +254,7 @@ loadkeys dk
 
 setfont ter-128n # if you find the font to be too small
 
-# if still too small, try:
-
-
-setfont ter-132b
+# if still too small, try setfont ter-132b
 # increasing font size, which may be especially helpful when using
 # certain monitors (the package is called terminus-font), and is
 # is usually not on a filesystem after installation,
@@ -257,20 +264,47 @@ setfont ter-132b
 
 # as during a normal arch installation, if you have a wired
 # connection you should already be online and you can skip
-# the following command. if you have wifi, use:
+# the following command. 
+
+# if you need wifi, use:
 
 iwctl
 
 # this command should put you into a new prompt [iwd]:
 # and is already provided by the .iso from the iwd package
-# so if you want to be able to use it post-installation
-# consider adding it amongst the packages when ypu execute the
-# pacstrap /mnt command later, or just install as you would
-# normally after chrooting into the sytem, i.e. pacman -S iwd
+# if you want it post-install (not needed, but good to have)
+
+# wait installing before you have reached and executed arch-chroot /mnt 
+# and you are inside your system
+# pacman -S iwd
 
 # check device list for if other terms are used
+# device and adapters are usually on, if yours are called
+# something else run
 
-station wlan0 connect WifiDD10 # check your wifi name by: station wlan0 get-networks
+device list #wlan0 for me
+adapter list #phy0 for me
+
+# If you need to turn device and adapter on
+
+device wlan0 set-property on
+adapter phy0 set-property on
+
+# connect to wifi
+
+station wlan0 connect <yourWiFiname> # check your wifi name by: station wlan0 get-networks
+
+# if you don't remember wifi name
+
+station wlan0 scan
+station wlan0 get-networks
+
+# if the command works:
+station wlan0 connect <yourWiFiname>
+
+# then you get asked to write paraphrase (password)
+# after hitting enter hold ctrl and press c
+# should put you back to the terminal
 
 #Here is an example of a basic partition scheme that could be employed for your ZFS root install on a BIOS/MBR installation using GRUB:
 
