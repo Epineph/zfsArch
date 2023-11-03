@@ -826,43 +826,87 @@ cat /etc/fstab
 
 nano /etc/pacman.conf
 # go to the bottom and add the following:
+
+```
 [archzfs]
 Server = https://archzfs.com/$repo/x86_64
+```
+
 
 or do it like this:
 
+```bash
 echo -e "[archzfs]\nServer = https://archzfs.com/\$repo/\$arch\nSigLevel = Optional TrustAll" >> /etc/pacman.conf
+```
 
+Then import and sign this key:
+
+```bash
 # ArchZFS GPG keys (see https://wiki.archlinux.org/index.php/Unofficial_user_repositories#archzfs)
 pacman-key -r DDF7DB817396A49B2A2723F7403BD972F75D9D76
 pacman-key --lsign-key DDF7DB817396A49B2A2723F7403BD972F75D9D76
+```
+For your kernel, then you can choose either zfs-dkms or zfs-linux:
 
-#then you can choose either zfs-dkms or zfs-linux:
+For example:
 
+```bash
+pacman -S zfs-linux zfs-linux-headers
+```
 
+Alternatively:
+
+```bash
 pacman -S zfs-dkms
 
-# or
-pacman -S zfs-linux zfs-linux-headers
+# if you have nvidia, you can use it together with
 
+pacman -S nvidia-dkms
+```
 
-# edit /etc/pacman.conf
+Next, edit the comfiguration file located at: /etc/pacman.conf
+Here you want to add `zfs` to your hooks.
 
-HOOKS= (base udev autodetect modconf block keyboard zfs filesystem)
+You can configure your hooks in the following way:
 
+`HOOKS = (base udev autodetect modconf block keyboard zfs filesystem)`
+
+Just use your favorite editor (e.g., nano or vim) or, for example:
+
+```bash
+sudo sed -i 's/^HOOKS=.*/HOOKS=(base udev autodetect modconf block keyboard zfs filesystem)/' /etc/mkinitcpio.conf
+```
+
+Here are some important packages (you have have installed some of them already):
+
+```bash
 pacman -S base-devel efibootmgr grub networkmanager network-manager-applet openssh os-prober reflector rsync terminus-font wpa_supplicant xdg-user-dirs xdg-utils zsh grml-zsh-configs  refind
+```
 
-#edit /etc/default/grub
+For grub to work we also need to configure `/etc/default/grub`
 
-GRUB_CMDLINE_LINUX="root=ZFS=zroot/ROOT/default"
-#potentially
-GRUB_CMDLINE_LINUX_DEFAULT="loglevel 3 quiet video=1920x1080"
+Find the line (using nano or vim) and edit it accordingly:
 
+`GRUB_CMDLINE_LINUX="root=ZFS=zroot/ROOT/default"`
 
+Or
+
+```bash
+sudo sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="root=ZFS=zroot\/ROOT\/default"/' /etc/default/grub
+```
+
+This part is important. Before when we created the zpool, we included
+`compatibility=grub2`
+
+If you haven't included this or made some other configuration, grub
+may not recognize the filesystem. If everything is in order, there
+should be no error:
+
+```bash
 grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ArchLinux
 
 grub-mkconfig -o /boot/grub/grub.cfg
-
+```
 
 systemctl enable NetworkManager
 
@@ -874,7 +918,7 @@ systemctl enable zfs-import-cache
 
 systemctl enable zfs-import-scan
 
-systemctl enable zfs-mountpoint
+systemctl enable zfs-mount
 
 systemctl enable zfs-share
 
@@ -883,7 +927,7 @@ systemctl enable zfs-zed
 ssystemctl enable zfs.target
 
 ln -sf /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime
-hwclock --systohc
+hwclock --systohcno
 
 sed -i 's/#en_DK.UTF-8/en_DK.UTF-8' /etc/locale.gen && locale-gen
 
