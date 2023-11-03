@@ -26,7 +26,6 @@ cd ISOBUILD # this should be located in ~/ISOBUILD or /home/<yourusername>/ISOBU
 mv /releng/ zfsiso
 
 cd 
-```
 
 # I you don't have any AUR helped such as yay or paru, 
 # then you need to get one or youc can follow these steps. 
@@ -322,48 +321,18 @@ lsblk -l
 # or use your preferred package to set up your hard-drive
 # and partitions, e.g., fdisk or cfdisk /dev/nvme1nX
 
-# according to the official arch wiki, many different configuration
-# can be used for a zfs installation, e.g.,
-
-#Part     Size   Type
-#----     ----   -------------------------
-#   1     XXXG   Solaris Root (bf00)
-
-# here, here (bf00) indicates the code used when changing
-# partition type using the command 't' in gfisk or fdisk
-# followed by the number of the partiton after which you
-# execute use execute: bf00 which creates a solaris
-# root partition. Note that isn't necessary and 'type' in
-# this context is not important and is only the labelling
-# and the the installation should work regardless of
-# whether the the partition is formatted as something different
-# and zfa handles it differently and you don't have to format
-# the partition using (skip this bit):
-mkfs.ext4 /dev/nvme0nX # or as you would using btrfs:
-mkfs.btrfs /dev/nvme0nX
-# it makes no difference and has no impact in the context of
-# this installation. However, whether you use a MBR or GPT
-# partition table, i.e., a Master Boot Record or GUID Partition
-# Table, respectively, (I will use the latter during this installation)
-# 
-
-
-# using GRUB on a BIOS (or UEFI machine in legacy boot mode) machine 
-# but using a GPT partition table:
-
-#Part     Size   Type
-#----     ----   -------------------------
-#   1       2M   BIOS boot partition (ef02)
-#   2     XXXG   Solaris Root (bf00)
-
-
-#Another example, this time using a UEFI-specific bootloader
-# (such as rEFInd) with an GPT partition table:
+# On the arch wiki you can see several ways to partition your drive
+# I suggest (if you don't already have one) using a GPT table
+# with a EFI boot partition, no less than 5-600 mb, but I would recommemd 
+# 1G since it can fill up over time with kernels and bootloader
 
 #Part     Size   Type
 #----     ----   -------------------------
 #   1     600M   EFI boot partition (ef00)
 #   2     XXXG   Solaris Root (bf00)
+
+
+
 
 # I will use a table that has a form like the one
 # above, using grub as bootloader (making it compatible with
