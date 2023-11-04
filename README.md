@@ -6,20 +6,8 @@ to understand that the information provided to you by commands
 such as `lsblk -l`, can seem to be at odds with what actually 
 is happening. 
 
-So, for example, when you are ready to run:
-
-```
-pacstrap /mnt
-```
-
-You might normally run the commmand:
-
-```
-lsblk
-```
-
-Usually, you would be able to re-confirm everythimg has been mounted correctly.
-However, if you run it prior to `pacstrap`, it would show that nothing is mounted to /mnt. 
+Usually, you would be able to re-confirm that everything has been mounted correctly.
+However, if you run `lsblk` prior to `pacstrap`, it would show that nothing is mounted to /mnt. 
 Nevertheless, running `pacstrap /mnt base...` would not return an error,
 and `chroot /mnt` would, in fact, change root into your new system, despite
 no partition is displayed to have /mnt as mountpoint.
@@ -79,23 +67,7 @@ If you won't want to install grub and use systemd or some other bootloader, that
 Making zfs grub-compatible does come at the cost of some, but very few, features of
 zfs not being available, but the trade-off is small.
 
-A guide that listed every option at every point
-would not be a guide, but something more closly resembling the documentation of linux. this
-would defeat the entire poimt of making a guide, which necessarily means that
-the user is restricted to certain useful information, and not get a deep-dive into very
-small detail. The usefulness of a guide is not only the information presented to you,
-but also what is not presented to you, and the point if following a guide is that
-what is included and relevant (getting zfs-based arch linux installed),
-By leaving out what isn't relevant is what carves out the
-path of the guide, and therefore it is necessary to make decisions to restrict options.
-
-Therefore, I try to make make some decisions for simplicity
-that allow or otherwise do not restrict other options or considerations that 
-are not specific to this guide, but it doesn't mean that you have to do it
-(I suppose that using systemd can be used as bootloader if you choose to do
-that), just trust that you know and take into consideration how the points at
-which you deviate from my structions affect, if at all, any subsequent actions,
-and be mindful about that.
+# Why do this, and what is so special about zfs?
 
 ZFS is an advanced filesystem created by Sun Mircosystems which 
 has been acquired by Oracle and was relased for OpenSolaris in 2005. 
@@ -112,31 +84,48 @@ Therefore, in additon to sharing some of the advantageous features provided
 by the linux **btrfs** filesystem, it provides some unique features what 
 can best be exploited by having more than one disks. You can install zfs 
 even if you only have one hard-drive, and many of the useful features of zfs 
-can still be enjoyed, but having more than one disk will allow you to, 
-for example, benefit from having better performance and data redundancy
+can still be enjoyed, but having more than one disk will allow you to
+best exploit the advantages that zfs offers.
+
+The guide is designed to allow your preferences to be relevant, and this is
+mostly relevant if you have more than one hard-drive (in theory an external hard-drive
+could be used if you don't have 2 harddrives in your computer) since your
+decisions have an effect on, whether, for example, you will get mostly
+a extra data-redundancy, or whether you get a performance increase. 
+This increase in performance is mostly related to Disk I/O, which includes
+read or write or input/output operations (defined in KB/s) involving a physical disk.
+In simple words, it is the speed with which the data transfer takes place
+between the hard disk drive and RAM, or basically it measures active disk I/O time.
+
+
+For example, benefit from having better performance and data redundancy
 or *mirroriing*, but you can also opt to just maxizing performance
 using *striping*, which however comes at the cost of no additional data 
 redundancy. Therefore, there is also left room for decisions based on your 
-own preferences.
+own preferences. Whenever the guide branches out, i.e., there will be choices
+where you can decide what fits your needs the best, just read closely at those
+sections and check if you should do something else given that you have just
+chosen x, y or z. 
 
 # Prerequisites
 
-**The official arch-iso cannot** be used to install an arch-linux based zfs/Solaris OS architecture. **However**, if you already have an Arch installation (regardless of what filesystem type you are using), then you can start following the instructions given here, since I include the process of making the custom arch iso file file you will need. So, the first part deals with creating iso subsequently used as the **bootable installation medium for Arch based on zfs**.
- 
-I will not include a guide on installing arch on one of the typically used and officially supported filesystems, i.e,, if you don't have arch linux, then you must first install it using a filesystem which is available when using the official .iso image.
-One popular choice is ext4. Btrfs is also quite popular (provides similar
-features to zfs, like logical volume management, compression and more, though,
-zfs can do all of those too, but even faster, and includes additinal features)
-.
+## Creating your own custom image (.iso file)
 
-If you have never installed arch, or if you are very new to it and unfortable 
-doing the installation without relying entirely on a script, then it is
-probably a good idea to not use btrfs the first time you do it, but rather ext4,
-which isn't that different and mostly differs in setting up the drives. If
-installing it without a script seems unconfortable, you should probably
+**The official arch-iso cannot** be used to install an arch-linux based zfs/Solaris OS architecture. 
+**However**, if you already have an Arch installation (regardless of what filesystem type you are using), 
+then you can start following the instructions given here, since I include the process of making the
+custom arch iso file file you will need. So, the first part deals with creating iso subsequently 
+used as the **bootable installation medium for Arch based on zfs**.
+ 
+I will not include a guide on installing arch on one of the typically used and officially supported filesystems, 
+i.e,, if you don't have arch linux, then you must first install it on a none-zfs based filsystem. Typical
+choices are .ext4 and btrfs, but if you have limited experience installing arch, then just use .ext, which is
+a bit simpler.
+
+If installing it without a script seems unconfortable, you should probably
 reconsider and not start out by using zfs. Nevertheless, You don't need 
 to an arch enthusiast or know a great deal about arch itself if 
-you have a good understanding of linux in general. 
+you have a good understanding of linux in general
 
 One of the distinguising aspects of arch that can make it seem very different
 than other linux distributions is that less is pre-decided and hence requires the user 
@@ -151,12 +140,25 @@ a zfs filesytem-based sytem, a solid understanding of linux on a broader level i
 important than being able to memorise how to install arch without a script, even 
 if this is the first arch installation.
 
+If you have a solid grasp on linux and most relevant concepts, then you already know 
+a lot about arch, as well as debian, fedora and redhat. Even if you are an ubuntu user,
+you have probably wondered why you keep ending up on the arch linux wiki, and why
+the information works and is relevant to your problem. When one linux distribution
+forces you to install it with no desktop environment, letting you have access to
+a very underwhelming script and rather let you configure every small detail,
+given that linux distributions are mostly the same presented in different packages,
+then you shouldn't be surprised that the people who have to do so many
+manual configurations and pay attention to so many small details also write the most detailed wiki,
+which probably will be the best source no matter which distribution you are using.
+
+# Feel comfortable relying on your own problem-solving abilities most of the time
+
 This is important, because if you choose to use zfs for a long-term installation,
-you need to consider that it isn't officially supported by arch, and there
-are no guides on each problem you may face and therefore be comfortable
+you need to consider that it isn't officially supported by arch or any other linux distribution,
+and don't expect guides on each problem you may face and therefore be comfortable
 when you find that stackoverflow rarely has a relevant answer to you,
 and maybe sometimes get lucky finding an extremely user-unfriendly guide
-written by a russian hacker in one of the mosto bscure corners of the internet.
+written by a russian hacker in one of the mosto obscure corners of the internet.
 If you comfortable potentially relying most of the time doing the problem-solving 
 yourself, then this should be a fine choice. 
 
@@ -181,7 +183,9 @@ Instead, if using manjaro, use:
 sudo pamac -S package
 ```
 
-Otherwise I think it should work. If not, then you have to install arch.
+Otherwise I think it should work using Manjaro (I haven't checked, but in theory
+I cannot see what it shouldn't). If not, then you have to install arch, which basically
+is also what we do here, as well as a lot more. 
 
 # Why do this?
 
@@ -203,7 +207,6 @@ upported as OpenSolaris, active development stopped in 2010 after Oracle
 acquired it, so the zfs-filesystem hasn't been a part of any 
 officially supported project available for the public for over a decade. 
 
-
 However, active development has never stopped since 2010, and and is being 
 used by Oracle and officially in the sense that the zfs-filesystem architecture 
 but it is nevertheless not available as the os on computers officially. In fact, 
@@ -214,6 +217,9 @@ development starting only a few years after Windows was founded, and is being pr
 for being extremely well developed, which is hardly surprising for a file-system that
 has been under development, in some form or another, for around 40 years.
 
-Why else go through all this to get a zfs OS archistechture on Arch linux?
-
-
+so why else go through all this to get a zfs OS archistechture on Arch linux?
+As just mentioned, zfs is extremely well developed and has 40 years of work behind it.
+Remember, if you have several hard-disks you can get substantialt performance increase in
+disc I/O speed, i.e., faster disc read and write operations, and faster data
+transfer between the physical hard-drives and RAM. Even if you only have one hard-drive, 
+you can still enjoy zfs and its many other features.
