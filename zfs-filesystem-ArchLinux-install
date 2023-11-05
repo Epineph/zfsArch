@@ -1,4 +1,4 @@
-#!/usr/bin/env
+#!/bin/bash
 
 cd ~ # this is important if you want to just copy and paste from this guide (since the home folder will be used as reference
 
