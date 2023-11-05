@@ -1,215 +1,7 @@
-# zfs-filsystem based Arch-linux installaion
-
-This started out as my own notes, but once that I figured out how 
-complex the installation process can be, especially since one has 
-to understand that the information provided to you by commands 
-such as `lsblk -l`, can seem to be at odds with what actually 
-is happening. 
-
-So, for example, when you are ready to run:
-
-```
-pacstrap /mnt
-```
-
-You might normally run the commmand:
-
-```
-lsblk
-```
-
-Usually, you would be able to re-confirm everythimg has been mounted correctly.
-However, if you run it prior to `pacstrp`, it would show that nothing is mounted to /mnt. 
-Nevertheless, running `pacstrap /mnt base...` would not return an error,
-and `chroot /mn` would change root into your new system. However, you would
-need to check /mnt/etc/fstab or /etc/mnt if you akready chrooted into it, and make
-sure that the uncommented lines are commented out. Generally, the reverse would
-be true.
-
-It is important to keep in mind that zfs handles
-many things as a layered abstraction, you can trust that zfs is handling
-it as if that was the case, given that you haven't made a mistake,
-or that I haven't misguided you - remember, in certain sections, 
-you have to make some important descisions, like choosing whether or not
-to use a mirrored setup, and whether you would like to be striping or
-mirroring two physical drives, or perhaps you only install it into
-one hard-drive/single partition of a hard drive. Therefore, pay extra attention
-to parts where decisions brnch out. Always assume if you follow the instruction, 
-not necessarily the same decisions, that if nothing else is indicated, you can
-proceed, (there are points at which decisions run in parallel, and where possible 
-the aim of the guide is to allow for that).
-
-## the guide is purposefully made to keep flexibility in mind
-
-There will be points at which you cann choose one of several branches (because
-they are important to zfs and what you want to gain from it, for example when choosing
-whether to be mirroring or striping two physical hard-drives). There will be certain
-points at which an option is forced and that choosing a different route means that 
-you must be comfortable knowimg how it, and whether it, affects other options. 
-This is only done when there are countless options, and one of them allows for as much
-flexibility for the user and, when possible, being none-restrictive with respect to 
-how it affects options that are completely unrelated to the installation,
-i.e., choosing another option would affect options that are completely unrelated
-to this installation, implying dependence between options with no obvious corretion. 
-Such noise will be avoided when possible.
-
-I will try to indicate where those decisions are made, and while I will
-only go with one of them for consitency, you should be able to follow
-along regardless and, if nothing else is indicated, presume that you can proceed
-to use the following lines of code regardless of what decision you made,
-if you followed the insturctions at points where they branch out (though
-remember to use the labelling of, for example, hard-drives are they appear
-to you), which may differ from how it appears to me, then you should be able
-to continue regardless if you choose another option than provided here, given
-that you do not deviate in any other significant way.
-
-This guide takes into consideration that users might have partitions containing
-other linux filesystems as well as windows, and hence is made to be
-**grub compatible** for dual booting. **This means that the guide is made to
-be compatible with that option**, but whether or not you are dual booting has
-no impact on anything **it doesn't force any option**. Often there can be a dozen of
-ways to configure it, which can cause several unique ways to proceed at that point. However,
-the option of making it grub-compatible is forced. A guide that listed every option at every point
-would not be a guide, but something more closly resembling the documentation of linux. this
-would defeat the entire poimt of making a guide, which necessarily means that
-the user is restricted to certain information useful, since the usefulness of a guide
-is not only the information presented to you, but also what is not presented
-to you, and the point if following the guide is that what is included and relevant, but
-also that that the guide consists of everything that is mentioned as well as everything 
-else not mentioned in the guide. By leaving out what isn't relevant is what carves out the
-path of the guide, and therefore it is necessary to make decisions to restrict options.
-
-Therefore, I try to make make some decisions for simplicity
-that allow or otherwise do not restrict other options or considerations that 
-are not specific to this guide, but it doesn't mean that you have to do it
-(I suppose that using systemd can be used as bootloader if you choose to do
-that), just trust that you know and take into consideration how the points at
-which you deviate from my structions affect, if at all, any subsequent actions,
-so be mindful of both the operations as well as the order of operationa, which
-potentially can be important and inform you as they can be dependent on eachother.
-That means that I do at some points force or restrict the user to use a certain command
-at a specific place, and that you cannot continue without knowing how not choosing
-the same option affects what you do next. But such decisiins are purpossefully made
-to be as none-restrictive as possible (with regards to both the installation
-and how it affects things you might need to use the hard-drive for, but
-have mothing to do with this guide). Otherwise, the guide risks being for confusinf
-rather than guiding you. 
-
-ZFS is an advanced filesystem created by Sun Mircosystems which 
-has been acquired by Oracle and was relased for OpenSolaris in 2005. 
-Hence, the filesystem architecture is also known as a *Solaris OS Structure*, 
-which includes several advanced and beneficial features such as pooled storage
-(integrated volume management or `zpool`, Copy-on-write (COW), 
-Snapshots, RAID-Z  (Redundant Array of Independent Disks) which is similar
-to RAID-5 etc., in that it provides increased write buffering for performance, 
-but is different in that it is even faster and eliminiates what is known 
-as write-hole error. Furthermore, unlike RAID-5, it does not rely on special 
-hardware for reliabiliry or write buffering for performance.
-
-Therefore, in additon to sharing some of the advantageous features provided 
-by the linux **btrfs** filesystem, it provides some unique features what 
-can best be exploited by having more than one disks. You can install zfs 
-even if you only have one hard-drive, and many of the useful features of zfs 
-can still be enjoyed, but having more than one disk will allow you to, 
-for example, benefit from having better performance and data redundancy
-or *mirroriing*, but you can also opt to just maxizing performance
-using *striping*, which however comes at the cost of no additional data 
-redundancy. Therefore, there is also left room for decisions based on your 
-own preferences.
-
-# Prerequisites
-
-**The official arch-iso cannot** be used to install an arch-linux based zfs/Solaris OS architecture. **However**, if you already have an Arch installation (regardless of what filesystem type you are using), then you can start following the instructions given here, since I include the process of making the custom arch iso file file you will need. So, the first part deals with creating iso subsequently used as the **bootable installation medium for Arch based on zfs**.
- 
-I will not include a guide on installing arch on one of the typically used and officially supported filesystems, i.e,, if you don't have arch linux, then you must first install it using a filesystem which is available when using the official .iso image.
-One popular choice is ext4. Btrfs is also quite popular (provides similar
-features to zfs, like logical volume management, compression and more, though,
-zfs can do all of those too, but even faster, and includes additinal features)
-.
-
-If you have never installed arch, or if you are very new to it and unfortable 
-doing the installation without relying entirely on a script, then it is
-probably a good idea to not use btrfs the first time you do it, but rather ext4,
-which isn't that different and mostly differs in setting up the drives. If
-installing it without a script seems unconfortable, you should probably
-reconsider and not start out by using zfs. Nevertheless, You don't need 
-to an arch enthusiast or know a great deal about arch itself if 
-you have a good understanding of linux in general. 
-
-One of the distinguising aspects of arch that can make it seem very different
-than other linux distributions is that less is pre-decided and hence requires the user 
-to configure it, which requires a bit more attention to the filesystem structure 
-and functions, which ironically is mostly the same irrespective of which linux distribution
-you are using. Therefore, things that are perceived to be very different between distributions
-may reflect small differences in the philosophy guiding their respective develooment
-teams, and may therefore not reflect any actual significant difference inherently
-different. Therefore, I would not argue that much or any experience is needed using
-arch if you have a solid grasp on the fundamental concepts in linux, and if you want
-a zfs filesytem-based sytem, this would important than being able to memorise
-how to install arch without a script.
-
-This is important, because if you choose to use zfs for a long-term installation,
-you need to consider that it isn't officially supported by arch, and there
-are not guides on each problem you may face and therefore be comfortable
-when you find that stackoverflow rarely has a relevant answer to you,
-and maybe sometimes get lucky finding an extremely user-unfriendly find
-in one of the obscure corners of the internet. Be comfortable doing a lot of
-problem-solving yourself. If so, this may be a fine choice even if you have
-never used arch. 
-
-In theory, if this seems comfortable and acceptable risk to you,
-it doesn't really matter if you are new to arch, since the only reason you need 
-it here is to access the AUR (Arch Linux Distribution). You can therefore cheat
-a bit if you want a quick installation, since manjaro is installed in a similar
-fasion to most linux distributions, by that I mean a user-friendly .iso,
-and also an arch based derivative and provides access to the AUR. Therefore,
-using it to make iso and continue should not be an issue. 
-
-Though keep in mind that in manjaro you do not use:
-
-```
-sudo pacman -S packag
-```
-
-Instead, if using manjaro, use:
-
-```
-sudo pamac -S package
-```
-
-Otherwise I think it should work. If not, then you have to jnstall arch.
-
-# Why do this?
-
-Again, since zfs is neither officially supported by arch nor available as a filesystem 
-available on the officially supported images of any linux distribution!
-Although a few projects currently exist using zfs OS architectureand and actively
-developed, it is not publicallly avaiable as the os on computers.
-Therefore, arch wiki or guides to do certain sections may not be applicable,
-despite the vastness of the arch wiki. 
-
-So why this sacrifise? remember, the goal is to get the zfs-filesystem, 
-which is, like linux, based on unix. Therefore, the outcome is to get the
-zfs OS architecture and its great and attractive features, and since we 
-install it on arch, you will additionally get access to great features such
-as the AUR as a bonus. This comeas at the cost of not always having
-the answer readily available at your fingertios. Although zfs was relased 
-in 2005 as the OS system on computers available to the public and was
-upported as OpenSolaris, active development stopped in 2010 after Oracle 
-acquired it, so the zfs-filesystem hasn't been a part of any 
-officially supported project available for the public for over a decade. 
+ removing nvidia-utils breaks dependency 'nvidia-utils' required by libva-nvidia-driver-git
+:: removing nvidia-utils breaks dependency 'nvidia-utils' required by nvidia-settings
 
 
-However, active development has never stopped since 2010, and and is being 
-used by Oracle and officially in the sense that the zfs-filesystem architecture 
-but it is nevertheless not available as the os on computers officially. In fact, 
-the original codebase began in the early 1980's and was released by 
-Sun Microsystems as operating system on computers for the first time in 1991. So, 
-the zfs-filesystem has been actively developed for around 42 years and despite early development starting only a few years after Windows was founded, and is being praised for being extremely well developed, which is hardly surprising for a file-system that has been under development, in some form or another, for around 40 years. One could argue that this should be ecpected for a operating system whose active development timeframe next big milestone is reaching a half century.
-
-Therefore, this guide assumes that you already have arch installed and device such as a usb on which the .iso will 
-
-```bash
 sudo pacman -S archiso # important package that we need to build the customized arch iso image
 
 cd ~ # this is important if you want to just copy and paste from this guide (since the home folder will be used as reference
@@ -217,20 +9,18 @@ cd ~ # this is important if you want to just copy and paste from this guide (sin
 mkdir ISOBUILD
 
 cp -r /usr/share/archiso/configs/releng ISOBUILD/
-```
+
 This copies files from the archiso recursively into our build dir
 
-```bash
+
 cd ISOBUILD # this should be located in ~/ISOBUILD or /home/<yourusername>/ISOBUILD
 
 #rename the dir to zfsiso
 mv /releng/ zfsiso
 
 cd # when executed alone should take you back to the previous folder, which in this case is the ~
-```
 
-I you don't have any AUR helped such as yay or paru, then you need to get one or youc can follow these steps. Just skip if you already have. Futhermore, you do not have to put the AUR's in `/opt` and put them where you like. Just remember go back to the home directory `~` before you continue if you do so, unless you use another location as reference.
-```bash
+
 cd /opt
 
 sudo pacman -S git # if git isn't already installed on your system
@@ -254,22 +44,7 @@ sudo chmod -R u+rw /opt
 
 # Whereas changing permissions at /opt is safe, changing permissions
 # at locations that have restricted permissions can be problematic
-# and in some cases wreak havoc on your system. In many cases, problems
-# caused by changed permissions are reversible, but it can be challenging
-# or, and I can confirm from experience, it can lead to you finding yourself
-# re-installing linux. Therefore, in situations where you are prevented from
-# doing something due to restricted permissions, despite it being safe more 
-# often than not to change permission, there may be a good reason for those 
-# restrictions being there, and it is advisable to check before doing so, and
-# this is especially if you pass the -R argument, since you may not know
-# if a subdirectory or a subdirectory has a subdirectory whose subdirectory
-# has a subdirectory which causes problems to its subdirectories or your 
-# entire system. 
-
-# When you choose to do something recursively like chmod,
-# you need to consider that you may not know about all of the files you are 
-# affecting, or that your just changed or affected 100 or 10.000 files
-# you had no clue were there in the first place.
+# so be cautious when doing this in general, especially when recursive
 
 
 cd /yay
@@ -290,27 +65,16 @@ cd /paru-bin
 
 makepkg -si PKGBUILD
 
-
-# if you are done installing your preferred AUR helper, both
-# or already had an AUR helper installed, then proceed from here and
-
 cd ~ # to go back to your home directory if you are /opt or anywhere else 
 # than ~
-```
-If you do have yay/paru or if you are done with these steps, you can continue from here.
 
-Now we need to get 2 important packages for our custom .iso file. We need to get the `zfs-dkms` and `zfs-utils` from the AUR (Arch User Repository).
 
-It may take a few minutes to build both packages.
-
-```bash
 sudo pacman -S git # if you do not have git installed already
 
 git clone https://aur.archlinux.org/zfs-dkms.git
 
 cd zfs-dkms/
 
-You should probably not pass --skippgpcheck for security reasons, but if saving time where you can is your cup of tea you can do so like this
 
 makepkg --skippgpcheck
 
@@ -323,12 +87,6 @@ cd zfs-utils/
 makepkg --skippgpcheck
 
 cd
-```
-
-Now we have built the important packages needed to build the iso,
-so we go back to building it
-
-```bash
 
 cd /ISOBUILD/zfsiso # if you use the same directories, then you should be at ~/ISOBUILD/zfsiso
 
@@ -349,10 +107,7 @@ cp ~/zfs-dkms/*.zst . # which here is equivalent to
 cp ~/zfs-utils/*.zst .
 
 ls -al
-```
 
-```bash
-# Create the database
 
 repo-add zfsrepo.db.tar.gz *.zst
 
@@ -361,31 +116,25 @@ cd ..
 # should take you to ~/ISOBUILD/zfsiso
 
 sudo nano packages.x86_64
-```
 
-add the following in the bottom of /etc/pacman.conf
-you can use sudo nano/vim /etc/pacman.conf
+# add the following in the bottom of /etc/pacman.conf
+# you can use sudo nano/vim /etc/pacman.conf
 
-```bash
 [zfsrepo]
 SigLevel = Optional TrustAll
 Server = file:///home/heini/ISOBUILD/zfsiso/zfsrepo
-```
 
-or
-
-```bash
+# alternative way:
 echo "[zfsrepo]" | sudo tee -a /etc/pacman.conf
 echo "SigLevel = Optional TrustAll" | sudo tee -a /etc/pacman.conf
 echo "Server = file:///home/heini/ISOBUILD/zfsiso/zfsrepo" | sudo tee -a /etc/pacman.conf
-```
 
-We need to include the packages we built in the custom .iso
+# We need to include the packages we built in the custom .iso
 
-add these lines to ~/ISOBUIKD/zfsiso/packages.x86_64
+# add these lines to ~/ISOBUIKD/zfsiso/packages.x86_64
+# Use nano or vim
 
-```bash
-# [ZFS Custom  Repo]
+[ZFS Custom  Repo]
 linux-headers
 zfs-dkms
 zfs-utils
@@ -396,9 +145,7 @@ echo "# [ZFS Custom Repo]" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x8
 echo "linux-headers" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
 echo "zfs-dkms" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
 echo "zfs-utils" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
-```
 
-```bash
 # edit custom repository
 
 sudo nano /etc/pacman.conf
@@ -407,19 +154,18 @@ sudo nano /etc/pacman.conf
 
 [zfsrepo]
 SigLevel = Optional TrustAll
-Server = file:///home/heini/ISOBUILD/zfsiso/zfsrepo
+Server = file:///home/<YOURUSERNAME>/ISOBUILD/zfsiso/zfsrepo
 
-#remember to change /home/heini/ with your username
+# remember to change /home/heini/ with your username
 # to make sure, then:
 
 cd /ISOBUID/zfsiso/zfsrepo
 pwd # should return the path of location
 
-echo "[zfsrepo]" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
-echo "SigLevel = Optional TrustAll" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
-echo "Server = file:///home/heini/ISOBUILD/zfsiso/zfsrepo" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
+echo "[zfsrepo]" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "SigLevel = Optional TrustAll" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "Server = file:///home/heini/ISOBUILD/zfsiso/zfsrepo" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 
-```
 
 Lastly, we create two additiional directories to be created for our
 custom .iso
