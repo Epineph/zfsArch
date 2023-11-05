@@ -1,12 +1,4 @@
- removing nvidia-utils breaks dependency 'nvidia-utils' required by libva-nvidia-driver-git
-:: removing nvidia-utils breaks dependency 'nvidia-utils' required by nvidia-settings
-gl-wayland-2:1.1.13-1  eglexternalplatform-1.1-2  gssdp-1.6.3-1
-              gst-plugins-bad-libs-1.22.6-1  gupnp-1:1.6.6-1  gupnp-igd-1.6.0-1
-              libnice-0.1.21-2  libxnvctrl-545.29.02-1
-              libva-nvidia-driver-git-0.0.10.r22.g9888709-1  nvidia-dkms-545.29.02-2
-              nvidia-settings-545.29.02-1  nvidia-utils-545.29.02-2
-
-sudo pacman -S archiso # important package that we need to build the customized arch iso image
+#!/usr/bin/env
 
 cd ~ # this is important if you want to just copy and paste from this guide (since the home folder will be used as reference
 
