@@ -4,7 +4,7 @@ cd ~ # this is important if you want to just copy and paste from this guide (sin
 
 mkdir ISOBUILD
 
-cp -r /usr/share/archiso/configs/releng ISOBUILD/
+cp -r /usr/share/archiso/configs/releng ~/ISOBUILD/
 
 This copies files from the archiso recursively into our build dir
 
