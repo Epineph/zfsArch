@@ -111,19 +111,27 @@ cd ..
 
 # should take you to ~/ISOBUILD/zfsiso
 
-sudo nano packages.x86_64
+sudo nano ~/ISOBUILD/zfsiso/packages.x86_64
 
 # add the following in the bottom of /etc/pacman.conf
 # you can use sudo nano/vim /etc/pacman.conf
 
+# REMEMBER TO WRITE YOUR USERNAME AND REPLACE <YOURUSERNAME> WITH YOUR USER NAME
+# If you are unsure about it, just run:
+
+cd ~/ISOBUILD/zfsiso/zfsrepo
+
+echo "Server = file:///$pwd" # This should produce the line if you are unsure 
+
 [zfsrepo]
 SigLevel = Optional TrustAll
-Server = file:///home/heini/ISOBUILD/zfsiso/zfsrepo
+Server = file:///home/<YOURUSERNAME>/ISOBUILD/zfsiso/zfsrepo
 
 # alternative way:
 echo "[zfsrepo]" | sudo tee -a /etc/pacman.conf
 echo "SigLevel = Optional TrustAll" | sudo tee -a /etc/pacman.conf
-echo "Server = file:///home/heini/ISOBUILD/zfsiso/zfsrepo" | sudo tee -a /etc/pacman.conf
+echo "Server = file:///home/</ISOBUILD/zfsiso/zfsrepo" | sudo tee -a /etc/pacman.conf # alternatively:
+cd ~/ISOBUILD/zfsiso/zfsrepo && echo "Server = file:///$(pwd)" | sudo tee -a /etc/pacman.conf
 
 # We need to include the packages we built in the custom .iso
 
@@ -137,58 +145,36 @@ zfs-utils
 
 #alternatively, use tee to append these lines
 
-echo "# [ZFS Custom Repo]" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
-echo "linux-headers" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
-echo "zfs-dkms" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
-echo "zfs-utils" | sudo tee -a /home/heini/ISOBUILD/zfsiso/packages.x86_64
-
-# edit custom repository
-
-sudo nano /etc/pacman.conf
-
-# add this custom repository in the buttom like this:
-
-[zfsrepo]
-SigLevel = Optional TrustAll
-Server = file:///home/<YOURUSERNAME>/ISOBUILD/zfsiso/zfsrepo
-
-# remember to change /home/heini/ with your username
-# to make sure, then:
-
-cd /ISOBUID/zfsiso/zfsrepo
-pwd # should return the path of location
-
-echo "[zfsrepo]" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-echo "SigLevel = Optional TrustAll" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-echo "Server = file:///home/heini/ISOBUILD/zfsiso/zfsrepo" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "# [ZFS Custom Repo]" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "zfs-dkms" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "zfs-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 
 
-Lastly, we create two additiional directories to be created for our
-custom .iso
+# Lastly, we create two additiional directories to be created for our
+# custom .iso
 
-```bash
 # you are expected to be at ~/ISOBUILD/zfsiso
 
+cd ~ /ISOBUILD/zfsiso
 mkdir {WORK,ISOOUT}
 
-Trhat is to say, mkfs ~/ISOBUILD/zfsisi/{WORK,ISOOUT}
-```
 
-Before changin to root (and do not change location prior to this)
+# Before changin to root (and do not change location prior to this)
 
-Ensure that you do not lack any permissions iso
-
-```bash
-chmod -R +rw ~/ISOBUILD/
-
-```
-
-#change to root
+# Ensure that you do not lack any permissions for the creation of the iso file
 
 
-#do not change directory beforw going to root. If you are lost, go back to /home/heini/ISOBUILD/zfsiso
+chmod -R +rwx ~/ISOBUILD/
+
+
+
+# do not change directory beforw going to root. If you are lost, go back to ~/ISOBUILD/zfsiso
+# it will not work after, because ~ is interpreted by root as the directory /root
 
 su root
+
+to be 
 
 #this will build this custom .iso
 mkarchiso -v -w WORK -o ISOOUT .
