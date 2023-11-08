@@ -56,6 +56,7 @@ check_and_AUR() {
   fi
 }
 
+check_and_install_package archiso
 check_and_install_package git
 check_and_AUR
 
@@ -114,7 +115,7 @@ echo "zfs-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 cd ~/ISOBUILD/zfsiso
 mkdir {WORK,ISOOUT}
 
-su root
+#su root
 
-(su root && mkarchiso -v -w WORK -o ISOOUT .)
+#mkarchiso -v -w WORK -o ISOOUT .
 
