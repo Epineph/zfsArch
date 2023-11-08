@@ -67,7 +67,7 @@ sudo pacman -S git --needed
 
 mkdir -p ~/ISOBUILD
 
-cp -R /usr/share/archiso/configs/releng ISOBUILD/
+cp -r /usr/share/archiso/configs/releng ~/ISOBUILD/
 
 sleep 1
 
@@ -80,8 +80,8 @@ git -C ~/ clone https://aur.archlinux.org/zfs-dkms.git
 git -C ~/ clone https://aur.archlinux.org/zfs-utils.git
 
 
-cd ~/zfs-dkms && makepkg --skippgpcheck
-cd ~/zfs-utils && makepkg --skippgpcheck
+(cd ~/zfs-dkms && makepkg --skippgpcheck)
+(cd ~/zfs-utils && makepkg --skippgpcheck)
 
 
 cd ~/ISOBUILD/zfsiso/
