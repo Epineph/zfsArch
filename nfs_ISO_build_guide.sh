@@ -112,7 +112,7 @@ mkdir {WORK,ISOOUT}
 
 # Create the gshadow file
 echo "root:$USER" | sudo tee ~/ISOBUILD/zfsiso/airootfs/etc/gshadow
-sudo chmod 0400 ~/ISOBUILD/zfsiso/airootfs/etc/gshadow
+
 
 # Modify the profile.sh file to include the gshadow permissions
 awk '/\["\/etc\/shadow"\]="0:0:400"/ { print; print "  [\"/etc/gshadow\"]=\"0:0:0400\""; next }1' ~/ISOBUILD/zfsiso/profiledef.sh > ~/ISOBUILD/zfsiso/profiledef.sh.tmp && mv ~/ISOBUILD/zfsiso/profiledef.sh.tmp ~/ISOBUILD/zfsiso/profiledef.sh
