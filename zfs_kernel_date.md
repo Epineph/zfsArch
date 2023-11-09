@@ -1,4 +1,4 @@
-
+´´´bash
 
 # Define the URL
 url="https://archzfs.com/archzfs/x86_64/"
@@ -8,7 +8,7 @@ pacman_conf="/home/heini/test_scripts/pacman.conf"
 
 # Export the URL so that it can be accessed as an environment variable in Python
 export url
-
+´´´
 read -r filename date <<< $(python3 << 'END_PYTHON'
 ´´´python
 import os
