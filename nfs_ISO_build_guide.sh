@@ -60,6 +60,33 @@ check_and_install_package archiso
 check_and_install_package git
 check_and_AUR
 
+pacman -S python-setuptools python-beautifulsoup4 python-requests --needed
+
+# inline Python script
+python3 << 'END_PYTHON'
+import requests
+from bs4 import BeautifulSoup
+
+url = 'http://example.com/archzfs/x86_64/'
+
+# Fetch the HTML content
+response = requests.get(url)
+html_content = response.text
+
+# Parse the HTML content
+soup = BeautifulSoup(html_content, 'html.parser')
+
+# Find the elements that contain the last modified dates
+# (This will depend on the HTML structure of your page)
+for element in soup.find_all('zfs-linux'):
+    # Extract and print the last modified date
+    last_modified_date = element.text
+    print(last_modified_date)
+
+END_PYTHON
+
+# more bash commands ...
+
 git -C ~/ clone https://aur.archlinux.org/zfs-dkms.git
 git -C ~/ clone https://aur.archlinux.org/zfs-utils.git
 
