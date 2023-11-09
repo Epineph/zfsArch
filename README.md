@@ -1,4 +1,4 @@
-# zfs-filsystem based Arch-linux installaion
+# zfs-filsystem based Arch-linux installaion (work-in-progress)
 
 This started out as my own notes, but once that I figured out how 
 complex the installation process can be, especially since one has 
