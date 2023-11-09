@@ -12,7 +12,7 @@ export url
 read -r filename date <<< $(python3 << 'END_PYTHON'
 ```
 
-´´´python
+´´´py
 import os
 import requests
 from bs4 import BeautifulSoup
