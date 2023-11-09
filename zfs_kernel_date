@@ -12,6 +12,7 @@ pacman_conf="/home/heini/test_scripts/pacman.conf"
 export url
 
 read -r filename date <<< $(python3 << 'END_PYTHON'
+´´´python
 import os
 import requests
 from bs4 import BeautifulSoup
@@ -59,6 +60,7 @@ else:
     sys.exit(1)
 
 END_PYTHON
+´´´
 )
 
 # Check if Python script executed successfully
