@@ -1,5 +1,3 @@
-#!/bin/bash
-
 
 
 # Define the URL
