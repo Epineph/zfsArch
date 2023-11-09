@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+´´´bash
 
 # Define the URL
 url="https://archzfs.com/archzfs/x86_64/"
@@ -12,6 +12,7 @@ pacman_conf="/home/heini/test_scripts/pacman.conf"
 export url
 
 read -r filename date <<< $(python3 << 'END_PYTHON'
+´´´python
 import os
 import requests
 from bs4 import BeautifulSoup
@@ -60,7 +61,7 @@ else:
 
 END_PYTHON
 )
-
+´´´
 # Check if Python script executed successfully
 if [ $? -eq 0 ]; then
     # Use the captured output
