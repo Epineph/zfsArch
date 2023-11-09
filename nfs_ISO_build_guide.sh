@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# WORK IN PROGRESS - DO NOT RUN YET 
 check_and_install_package() {
   local package="$1"
   # Check if the package is already installed
