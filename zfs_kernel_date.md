@@ -1,4 +1,4 @@
-´´´bash
+```bash
 
 # Define the URL
 url="https://archzfs.com/archzfs/x86_64/"
@@ -8,8 +8,10 @@ pacman_conf="/home/heini/test_scripts/pacman.conf"
 
 # Export the URL so that it can be accessed as an environment variable in Python
 export url
-´´´
+
 read -r filename date <<< $(python3 << 'END_PYTHON'
+```
+
 ´´´python
 import os
 import requests
@@ -60,7 +62,7 @@ else:
 END_PYTHON
 ´´´
 )
-
+´´´bash
 # Check if Python script executed successfully
 if [ $? -eq 0 ]; then
     # Use the captured output
@@ -91,3 +93,4 @@ if ! grep -q "\[archzfs\]" "$pacman_conf"; then
 fi
 
 echo "pacman.conf has been updated."
+´´´
