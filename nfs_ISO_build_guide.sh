@@ -1,4 +1,41 @@
 #!/bin/bash
+check_and_AUR() {
+  local package="$1"
+  local aur_helper
+
+  # Check for AUR helper
+  if type yay &>/dev/null; then
+    aur_helper="yay"
+  elif type paru &>/dev/null; then
+    aur_helper="paru"
+  else
+    echo "No AUR helper found. You will need one to install AUR packages."
+    read -p "Do you want to install one? (Y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+	  echo -n "type which AUR-helper you want (yay/paru/both): "
+	  read VAR1
+	  if [[ "$VAR1" == "both" ]] [[ -z $VAR1 ]]; then
+        echo "Installing yay and paru into ~/AUR-helpers..."
+        mkdir -p ~/AUR-helpers && (git -C ~/AUR-helpers clone https://aur.archlinux.org/yay.git && git -C ~/AUR-helpers clone https://aur.archlinux.org/paru-bin.git) && (cd ~/AUR-helpers/yay && makepkg -si) && (cd ~/AUR-helpers/paru && makepkg -si)
+      elif [[ "$VAR1" == "yay" ]] || [[ "$VAR1" == "paru" ]]; then
+		echo "Installing "$VAR1" into ~/AUR-helpers..."
+		mkdir -p ~/AUR-helpers && (git -C ~/AUR-helpers clone https://aur.archlinux.org/$VAR1.git) && (cd ~/AUR-helpers/$VAR1 && makepkg -si)
+	  cd -  # Return to the previous directory
+      if [ $? -ne 0 ]; then
+        echo "Failed to install AUR-helper. Aborting."
+        exit 1
+      else
+        aur_helper="yay" || aur_helper="paru"
+      fi
+    else
+      echo "An AUR helper is required to install AUR packages. Aborting."
+      exit 1
+    fi
+  fi
+}
+
+#!/bin/bash
 # WORK IN PROGRESS - DO NOT RUN YET 
 check_and_install_packages() {
   local missing_packages=()
