@@ -68,7 +68,67 @@ check_and_install_packages archiso git python-setuptools python-requests python-
 
 check_and_AUR
 
+
+
+source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
+git -C ~/ clone https://aur.archlinux.org/zfs-dkms.git
+git -C ~/ clone https://aur.archlinux.org/zfs-utils.git
+git -C ~/ clone https://aur.archlinux.org/zfs-linux-headers.git
+git -C ~/ clone https://aur.archlinux.org/zfs-linux.git
+
+
+(cd ~/zfs-dkms && makepkg --skippgpcheck --noconfirm)
+(cd ~/zfs-utils && makepkg --skippgpcheck --noconfirm)
+#(cd ~/zfs-linux-headers && makepkg --holdver --skippgpcheck --noconfirm)
+#(cd ~/zfs-linux && makepkg --holdver --skippgpcheck --noconfirm)
+
+mkdir -p ~/ISOBUILD
+
+cp -r /usr/share/archiso/configs/releng ~/ISOBUILD/
+
+sleep 1
+
+cd ~/ISOBUILD
+
+mv releng/ zfsiso
+
+
+
+cd zfsiso
+
+mkdir zfsrepo
+
+cd zfsrepo
+
+cp ~/zfs-dkms/*.zst .
+sleep 2
+cp ~/zfs-utils/*.zst .
+
+#cp ~/zfs-linux-headers/*.zst .
+#cp ~/zfs-linux/*.zst .
+
+repo-add zfsrepo.db.tar.gz *.zst
+
+sleep 1
+
+echo -e "\n[zfsrepo]" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
+echo "SigLevel = Optional TrustAll" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
+echo "Server = file:///home/$USER/ISOBUILD/zfsiso/zfsrepo" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
+
+sed -i "/\ParallelDownloads = 5/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
+
+sed -i "/\[multilib\]/,/Include/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
+
+echo "linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "zfs-dkms" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "zfs-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+#echo "zfs-linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+#echo "zfs-linux" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+
+#!/bin/bash
 # Define the URL
+echo -e "\n[community]\nInclude = /etc/pacman.d/mirrorlist" | sudo tee -a ~/zfsArch/pacman.conf
+
 url="https://archzfs.com/archzfs/x86_64/"
 
 # Define the path to the pacman.conf file
@@ -137,6 +197,7 @@ else
     exit 1
 fi
 
+
 # Continue with your bash script...
 
 # Make the changes for [core], [extra], and [community]
@@ -151,71 +212,16 @@ fi
 
 echo "pacman.conf has been updated."
 
-source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
-git -C ~/ clone https://aur.archlinux.org/zfs-dkms.git
-git -C ~/ clone https://aur.archlinux.org/zfs-utils.git
-git -C ~/ clone https://aur.archlinux.org/zfs-linux-headers.git
-git -C ~/ clone https://aur.archlinux.org/zfs-linux.git
-
-
-(cd ~/zfs-dkms && makepkg --skippgpcheck --noconfirm)
-(cd ~/zfs-utils && makepkg --skippgpcheck --noconfirm)
-#(cd ~/zfs-linux-headers && makepkg --holdver --skippgpcheck --noconfirm)
-#(cd ~/zfs-linux && makepkg --holdver --skippgpcheck --noconfirm)
-
-mkdir -p ~/ISOBUILD
-
-cp -r /usr/share/archiso/configs/releng ~/ISOBUILD/
-
-sleep 1
-
-cd ~/ISOBUILD
-
-mv releng/ zfsiso
-
-
-
-cd zfsiso
-
-mkdir zfsrepo
-
-cd zfsrepo
-
-cp ~/zfs-dkms/*.zst .
-sleep 2
-cp ~/zfs-utils/*.zst .
-
-cp ~/zfs-linux-headers/*.zst .
-cp ~/zfs-linux/*.zst .
-
-repo-add zfsrepo.db.tar.gz *.zst
-
-sleep 1
-
-echo -e "\n[zfsrepo]" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
-echo "SigLevel = Optional TrustAll" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
-echo "Server = file:///home/$USER/ISOBUILD/zfsiso/zfsrepo" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
-
-sed -i "/\ParallelDownloads = 5/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
-
-sed -i "/\[multilib\]/,/Include/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
-
-echo "linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-echo "zfs-dkms" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-echo "zfs-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-echo "zfs-linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-echo "zfs-linux" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-
 
 cd ~/ISOBUILD/zfsiso
 mkdir {WORK,ISOOUT}
 
 # Create the gshadow file
-echo "root:$USER" | sudo tee ~/ISOBUILD/zfsiso/airootfs/etc/gshadow
+#echo "root:$USER" | sudo tee ~/ISOBUILD/zfsiso/airootfs/etc/gshadow
 
 
 # Modify the profile.sh file to include the gshadow permissions
-awk '/\["\/etc\/shadow"\]="0:0:400"/ { print; print "  [\"/etc/gshadow\"]=\"0:0:0400\""; next }1' ~/ISOBUILD/zfsiso/profiledef.sh > ~/ISOBUILD/zfsiso/profiledef.sh.tmp && mv ~/ISOBUILD/zfsiso/profiledef.sh.tmp ~/ISOBUILD/zfsiso/profiledef.sh
+#awk '/\["\/etc\/shadow"\]="0:0:400"/ { print; print "  [\"/etc/gshadow\"]=\"0:0:0400\""; next }1' ~/ISOBUILD/zfsiso/profiledef.sh > ~/ISOBUILD/zfsiso/profiledef.sh.tmp && mv ~/ISOBUILD/zfsiso/profiledef.sh.tmp ~/ISOBUILD/zfsiso/profiledef.sh
 
 
 (cd ~/ISOBUILD/zfsiso && sudo mkarchiso -v -w WORK -o ISOOUT .)
