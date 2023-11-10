@@ -19,7 +19,7 @@ check_and_install_packages() {
     echo    # Move to a new line
     if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
       for package in "${missing_packages[@]}"; do
-        sudo pacman -S "$package"
+        yes | sudo pacman -S "$package"
         if [ $? -ne 0 ]; then
           echo "Failed to install $package. Aborting."
           exit 1
@@ -64,7 +64,7 @@ check_and_AUR() {
   fi
 }
 
-check_and_install_packages archiso git python-setuptools python-requests python-beautifulsoup4
+check_and_install_packages archiso git python-setuptools python-requests python-beautifulsoup4 base-devel pacman-contrib
 
 check_and_AUR
 
@@ -75,10 +75,10 @@ git -C ~/ clone https://aur.archlinux.org/zfs-linux-headers.git
 git -C ~/ clone https://aur.archlinux.org/zfs-linux.git
 
 
-(cd ~/zfs-dkms && makepkg --skippgpcheck)
-(cd ~/zfs-utils && makepkg --skippgpcheck)
-(cd ~/zfs-linux-headers && makepkg --skippgpcheck)
-(cd ~/zfs-linux && makepkg --skippgpcheck)
+(cd ~/zfs-dkms && makepkg --skippgpcheck --syncdepends  --noconfirm)
+(cd ~/zfs-utils && makepkg --skippgpcheck --syncdepends  --noconfirm)
+(cd ~/zfs-linux-headers && makepkg --skippgpcheck --syncdepends  --noconfirm)
+(cd ~/zfs-linux && makepkg --skippgpcheck --syncdepends  --noconfirm)
 
 mkdir -p ~/ISOBUILD
 
