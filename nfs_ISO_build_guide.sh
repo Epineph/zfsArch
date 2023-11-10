@@ -129,6 +129,8 @@ echo "zfs-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 # Define the URL
 echo -e "\n[community]\nInclude = /etc/pacman.d/mirrorlist" | sudo tee -a ~/zfsArch/pacman.conf
 
+sudo chmod u+rwx ~/ISOBUILD/zfsiso/pacman.conf
+
 url="https://archzfs.com/archzfs/x86_64/"
 
 # Define the path to the pacman.conf file
