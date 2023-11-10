@@ -68,7 +68,7 @@ check_and_install_packages archiso git python-setuptools python-requests python-
 
 check_and_AUR
 
-
+#curl -s https://raw.githubusercontent.com/eoli3n/archiso-zfs/master/init
 
 #source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
 
