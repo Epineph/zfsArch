@@ -75,10 +75,10 @@ git -C ~/ clone https://aur.archlinux.org/zfs-linux-headers.git
 git -C ~/ clone https://aur.archlinux.org/zfs-linux.git
 
 
-(cd ~/zfs-dkms && makepkg --skippgpcheck --syncdepends  --noconfirm)
-(cd ~/zfs-utils && makepkg --skippgpcheck --syncdepends  --noconfirm)
-(cd ~/zfs-linux-headers && makepkg --skippgpcheck --syncdepends  --noconfirm)
-(cd ~/zfs-linux && makepkg --skippgpcheck --syncdepends  --noconfirm)
+(cd ~/zfs-dkms && makepkg --skippgpcheck --noconfirm)
+(cd ~/zfs-utils && makepkg --skippgpcheck --noconfirm)
+(cd ~/zfs-linux-headers && makepkg --skippgpcheck --noconfirm)
+(cd ~/zfs-linux && makepkg --skippgpcheck --noconfirm)
 
 mkdir -p ~/ISOBUILD
 
