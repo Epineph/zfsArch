@@ -71,14 +71,17 @@ check_and_AUR
 
 
 #source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
+
 git -C ~/ clone https://aur.archlinux.org/zfs-dkms.git
 git -C ~/ clone https://aur.archlinux.org/zfs-utils.git
 #git -C ~/ clone https://aur.archlinux.org/zfs-linux-headers.git
 #git -C ~/ clone https://aur.archlinux.org/zfs-linux.git
+yay --batchinstall --rebuildtree
 
-
-(cd ~/zfs-dkms && makepkg --skippgpcheck --noconfirm)
-(cd ~/zfs-utils && makepkg --skippgpcheck --noconfirm)
+(cd ~/zfs-dkms && source PKGBUILD && sudo pacman -Syu --noconfirm --needed --asdeps && makepkg --skippgpcheck)
+#(cd ~/zfs-dkms && makepkg --skippgpcheck --noconfirm)
+#cd ~/zfs-utils && makepkg --skippgpcheck --noconfirm)
+(cd ~/zfs-utils && source PKGBUILD && sudo pacman -Syu --noconfirm --needed --asdeps && makepkg --skippgpcheck))
 #(cd ~/zfs-linux-headers && makepkg --holdver --skippgpcheck --noconfirm)
 #(cd ~/zfs-linux && makepkg --holdver --skippgpcheck --noconfirm)
 
