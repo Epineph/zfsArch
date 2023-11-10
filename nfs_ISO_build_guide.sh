@@ -1,55 +1,38 @@
 #!/bin/bash
 # WORK IN PROGRESS - DO NOT RUN YET 
-check_and_install_package() {
-  local package="$1"
-  # Check if the package is already installed
-  if ! pacman -Qi "$package" &> /dev/null; then
-    echo "Package '$package' is not installed."
-    read -p "Do you want to install $package? (Y/n) " -n 1 -r
+check_and_install_packages() {
+  local missing_packages=()
+  
+  # Check which packages are not installed
+  for package in "$@"; do
+    if ! pacman -Qi "$package" &> /dev/null; then
+      missing_packages+=("$package")
+    else
+      echo "Package '$package' is already installed."
+    fi
+  done
+
+  # If there are missing packages, ask the user if they want to install them
+  if [ ${#missing_packages[@]} -ne 0 ]; then
+    echo "The following packages are not installed: ${missing_packages[*]}"
+    read -p "Do you want to install them? (Y/n) " -n 1 -r
     echo    # Move to a new line
     if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
-      # The user wants to install the package
-      sudo pacman -S "$package"
-      if [ $? -ne 0 ]; then
-        echo "Failed to install $package. Aborting."
-        exit 1
-      fi
-    else
-      # The user does not want to install the package
-      echo "Package $package is required to continue. Aborting."
-      exit 1
-    fi
-  else
-    echo "Package '$package' is already installed."
-  fi
-}
-
-#!/bin/bash
-# WORK IN PROGRESS - DO NOT RUN YET 
-check_and_install_packages() {
-  for package in "$@"; do
-    # Check if the package is already installed
-    if ! pacman -Qi "$package" &> /dev/null; then
-      echo "Package '$package' is not installed."
-      read -p "Do you want to install $package? (Y/n) " -n 1 -r
-      echo    # Move to a new line
-      if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
-        # The user wants to install the package
+      for package in "${missing_packages[@]}"; do
         sudo pacman -S "$package"
         if [ $? -ne 0 ]; then
           echo "Failed to install $package. Aborting."
           exit 1
         fi
-      else
-        # The user does not want to install the package
-        echo "Package $package is required to continue. Aborting."
-        exit 1
-      fi
+      done
     else
-      echo "Package '$package' is already installed."
+      echo "The following packages are required to continue: ${missing_packages[*]}. Aborting."
+      exit 1
     fi
-  done
+  fi
 }
+
+check_and_install_packages ruby vim neofetch
 
 check_and_AUR() {
   local package="$1"
