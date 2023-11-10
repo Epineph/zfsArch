@@ -24,7 +24,32 @@ check_and_install_package() {
   fi
 }
 
-
+#!/bin/bash
+# WORK IN PROGRESS - DO NOT RUN YET 
+check_and_install_packages() {
+  for package in "$@"; do
+    # Check if the package is already installed
+    if ! pacman -Qi "$package" &> /dev/null; then
+      echo "Package '$package' is not installed."
+      read -p "Do you want to install $package? (Y/n) " -n 1 -r
+      echo    # Move to a new line
+      if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+        # The user wants to install the package
+        sudo pacman -S "$package"
+        if [ $? -ne 0 ]; then
+          echo "Failed to install $package. Aborting."
+          exit 1
+        fi
+      else
+        # The user does not want to install the package
+        echo "Package $package is required to continue. Aborting."
+        exit 1
+      fi
+    else
+      echo "Package '$package' is already installed."
+    fi
+  done
+}
 
 check_and_AUR() {
   local package="$1"
