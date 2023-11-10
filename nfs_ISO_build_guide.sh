@@ -64,7 +64,7 @@ check_and_AUR() {
   fi
 }
 
-check_and_install_package archiso git python-setuptools python-requests python-beautifulsoup4
+check_and_install_packages archiso git python-setuptools python-requests python-beautifulsoup4
 
 check_and_AUR
 
