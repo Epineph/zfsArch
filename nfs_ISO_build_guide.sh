@@ -70,11 +70,11 @@ check_and_AUR
 
 
 
-source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
+#source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
 git -C ~/ clone https://aur.archlinux.org/zfs-dkms.git
 git -C ~/ clone https://aur.archlinux.org/zfs-utils.git
-git -C ~/ clone https://aur.archlinux.org/zfs-linux-headers.git
-git -C ~/ clone https://aur.archlinux.org/zfs-linux.git
+#git -C ~/ clone https://aur.archlinux.org/zfs-linux-headers.git
+#git -C ~/ clone https://aur.archlinux.org/zfs-linux.git
 
 
 (cd ~/zfs-dkms && makepkg --skippgpcheck --noconfirm)
