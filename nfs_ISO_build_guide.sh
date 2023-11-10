@@ -1,41 +1,4 @@
 #!/bin/bash
-check_and_AUR() {
-  local package="$1"
-  local aur_helper
-
-  # Check for AUR helper
-  if type yay &>/dev/null; then
-    aur_helper="yay"
-  elif type paru &>/dev/null; then
-    aur_helper="paru"
-  else
-    echo "No AUR helper found. You will need one to install AUR packages."
-    read -p "Do you want to install one? (Y/n) " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
-	  echo -n "type which AUR-helper you want (yay/paru/both): "
-	  read VAR1
-	  if [[ "$VAR1" == "both" ]] [[ -z $VAR1 ]]; then
-        echo "Installing yay and paru into ~/AUR-helpers..."
-        mkdir -p ~/AUR-helpers && (git -C ~/AUR-helpers clone https://aur.archlinux.org/yay.git && git -C ~/AUR-helpers clone https://aur.archlinux.org/paru-bin.git) && (cd ~/AUR-helpers/yay && makepkg -si) && (cd ~/AUR-helpers/paru && makepkg -si)
-      elif [[ "$VAR1" == "yay" ]] || [[ "$VAR1" == "paru" ]]; then
-		echo "Installing "$VAR1" into ~/AUR-helpers..."
-		mkdir -p ~/AUR-helpers && (git -C ~/AUR-helpers clone https://aur.archlinux.org/$VAR1.git) && (cd ~/AUR-helpers/$VAR1 && makepkg -si)
-	  cd -  # Return to the previous directory
-      if [ $? -ne 0 ]; then
-        echo "Failed to install AUR-helper. Aborting."
-        exit 1
-      else
-        aur_helper="yay" || aur_helper="paru"
-      fi
-    else
-      echo "An AUR helper is required to install AUR packages. Aborting."
-      exit 1
-    fi
-  fi
-}
-
-#!/bin/bash
 # WORK IN PROGRESS - DO NOT RUN YET 
 check_and_install_packages() {
   local missing_packages=()
@@ -69,7 +32,7 @@ check_and_install_packages() {
   fi
 }
 
-check_and_install_packages ruby vim neofetch
+
 
 check_and_AUR() {
   local package="$1"
@@ -101,43 +64,21 @@ check_and_AUR() {
   fi
 }
 
-check_and_install_package archiso
-check_and_install_package git
+check_and_install_package archiso git python-setuptools python-requests python-beautifulsoup4
+
 check_and_AUR
 
-pacman -S python-setuptools python-beautifulsoup4 python-requests --needed
-
-# inline Python script
-python3 << 'END_PYTHON'
-import requests
-from bs4 import BeautifulSoup
-
-url = 'http://example.com/archzfs/x86_64/'
-
-# Fetch the HTML content
-response = requests.get(url)
-html_content = response.text
-
-# Parse the HTML content
-soup = BeautifulSoup(html_content, 'html.parser')
-
-# Find the elements that contain the last modified dates
-# (This will depend on the HTML structure of your page)
-for element in soup.find_all('zfs-linux'):
-    # Extract and print the last modified date
-    last_modified_date = element.text
-    print(last_modified_date)
-
-END_PYTHON
-
-# more bash commands ...
 
 git -C ~/ clone https://aur.archlinux.org/zfs-dkms.git
 git -C ~/ clone https://aur.archlinux.org/zfs-utils.git
+git -C ~/ clone https://aur.archlinux.org/zfs-linux-headers.git
+git -C ~/ clone https://aur.archlinux.org/zfs-linux.git
 
 
 (cd ~/zfs-dkms && makepkg --skippgpcheck)
 (cd ~/zfs-utils && makepkg --skippgpcheck)
+(cd ~/zfs-linux-headers && makepkg --skippgpcheck)
+(cd ~/zfs-linux && makepkg --skippgpcheck)
 
 mkdir -p ~/ISOBUILD
 
@@ -161,6 +102,9 @@ cp ~/zfs-dkms/*.zst .
 sleep 2
 cp ~/zfs-utils/*.zst .
 
+cp ~/zfs-linux-headers/*.zst .
+cp ~/zfs-linux/*.zst .
+
 repo-add zfsrepo.db.tar.gz *.zst
 
 sleep 1
@@ -176,7 +120,8 @@ sed -i "/\[multilib\]/,/Include/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
 echo "linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "zfs-dkms" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "zfs-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-
+echo "zfs-linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "zfs-linux" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 
 
 cd ~/ISOBUILD/zfsiso
