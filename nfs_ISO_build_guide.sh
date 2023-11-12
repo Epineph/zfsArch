@@ -81,10 +81,12 @@ git -C ~/ clone https://aur.archlinux.org/zfs-utils.git
 #git -C ~/ clone https://aur.archlinux.org/zfs-linux-headers.git
 #git -C ~/ clone https://aur.archlinux.org/zfs-linux.git
 #yay --batchinstall --rebuildtree
+git -C ~/ clone https://aur.archlinux.org/zfsbootmenu.git
 
 #(cd ~/zfs-dkms && source PKGBUILD && sudo pacman -f -Syu --noconfirm --needed --asdeps && makepkg --skippgpcheck)
 (cd ~/zfs-dkms && makepkg --skippgpcheck --noconfirm)
 (cd ~/zfs-utils && makepkg --skippgpcheck --noconfirm)
+(cd ~/zfsbootmenu && makepkg --skippgpcheck --noconfirm --nodeps)
 #(cd ~/zfs-utils && source PKGBUILD && sudo pacman -f -Syu --noconfirm --needed --asdeps && makepkg --skippgpcheck)
 #(cd ~/zfs-linux-headers && makepkg --holdver --skippgpcheck --noconfirm)
 #(cd ~/zfs-linux && makepkg --holdver --skippgpcheck --noconfirm)
@@ -110,10 +112,11 @@ cd zfsrepo
 cp ~/zfs-dkms/*.zst .
 sleep 2
 cp ~/zfs-utils/*.zst .
-
+sleep 2
+cd ~/zfsbootmenu/*.zst .
 #cp ~/zfs-linux-headers/*.zst .
 #cp ~/zfs-linux/*.zst .
-
+sleep 3
 repo-add zfsrepo.db.tar.gz *.zst
 
 sleep 1
