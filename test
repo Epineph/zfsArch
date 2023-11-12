@@ -1,3 +1,10 @@
+#curl -s https://raw.githubusercontent.com/eoli3n/archiso-zfs/master/init
+
+#source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
+#source PKGBUILD && yes | yay -Syu --noconfirm --needed --asdeps --batchinstall --sudoloop "${makedepends[@]}" "${depends[@]}"
+
+
+
 # Need to do this on a previous arch installation
 # the goal is to install arch on a nfs system
 
