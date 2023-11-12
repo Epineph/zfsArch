@@ -1,26 +1,26 @@
+#!/bin/bash
 
-
-
-```bash
+# This script changes pacman.conf so that the repos align with the date of
+# the latest zfs release. Just change the variable pacman_conf="/path/to/your/pacman.conf".
+# the script also inserts the zfsarch repository and uses SigLevel = optinal TrustAll
+# otherwise, you need to retrieve the gpg key and locally sign it. Both work, but this way is easier.
 
 # Define the URL
 url="https://archzfs.com/archzfs/x86_64/"
 
 # Define the path to the pacman.conf file
-pacman_conf="/home/heini/test_scripts/pacman.conf"
+pacman_conf="/home/$USER/pacman.conf"
 
 # Export the URL so that it can be accessed as an environment variable in Python
 export url
 
-read -r filename date <<< $(python3 << 'END_PYTHON'
-```
-
-```python
+# Run the Python script and capture the formatted date
+formatted_date=$(python3 << 'END_PYTHON'
 import os
 import requests
 from bs4 import BeautifulSoup
 import re
-import sys
+from datetime import datetime
 
 # Access the URL from the environment variable
 url = os.getenv('url')
@@ -28,7 +28,6 @@ url = os.getenv('url')
 # Fetch the HTML content from the URL
 response = requests.get(url)
 
-# Check if the request was successful
 if response.status_code != 200:
     print(f"Failed to retrieve the page, status code: {response.status_code}", file=sys.stderr)
     sys.exit(1)
@@ -51,25 +50,25 @@ for a_tag in soup.find_all('a', href=True):
             date = ' '.join(parts[:2])
             dates.append((a_tag['href'], date))
 
-# Sort the dates (assuming date format is consistent and lexicographic sort is sufficient)
+# Sort the dates
 dates.sort(key=lambda x: x[1], reverse=True)
 
-# Print the most recent date
+# Format the most recent date
 if dates:
     filename, most_recent_date = dates[0]
-    print(filename, most_recent_date)
+    # Parse the date string and reformat it
+    dt = datetime.strptime(most_recent_date, "%d-%b-%Y %H:%M")
+    formatted_date = dt.strftime("%Y/%m/%d")
+    print(formatted_date)
 else:
     print("No matching files found.", file=sys.stderr)
     sys.exit(1)
-
 END_PYTHON
-´´´
 )
-´´´bash
+
 # Check if Python script executed successfully
 if [ $? -eq 0 ]; then
-    # Use the captured output
-    echo "Most recent file: $filename, Last Modified: $date"
+    echo "Formatted Date: $formatted_date"
 else
     echo "The Python script failed."
     exit 1
@@ -77,17 +76,9 @@ fi
 
 # Continue with your bash script...
 
-# Convert the date to the required format (YYYY/MM/DD)
-# Ensuring that the date format in your pacman.conf will be YYYY/MM/DD
-formatted_date=$(echo $date | awk '{
-    month = match("JanFebMarAprMayJunJulAugSepOctNovDec", $2) / 3;
-    printf("%s/%02d/%s", $3, month, $1);
-}')
-
 # Make the changes for [core], [extra], and [community]
 for repo in core extra community; do
-    # Use \x27 for single quote to ensure that $repo and $arch are not expanded by the shell
-    sed -i "/^\[$repo\]$/,/Include/ s|Include = .*|Server = https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch\nSigLevel = PackageRequired|" $pacman_conf
+    sed -i "/^\[$repo\]/,/Include/ s|Include = .*|Server = https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch\nSigLevel = PackageRequired|" $pacman_conf
 done
 
 # Add the [archzfs] repository configuration if it doesn't exist
@@ -96,4 +87,3 @@ if ! grep -q "\[archzfs\]" "$pacman_conf"; then
 fi
 
 echo "pacman.conf has been updated."
-´´´
