@@ -120,7 +120,7 @@ sleep 1
 
 
 #echo -e "\n[zfsrepo]" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
-#echo "SigLevel = Optional TrustAll" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
+echo "SigLevel = Optional TrustAll" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
 echo "Server = file:///home/$USER/ISOBUILD/zfsiso/zfsrepo" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
 
 sed -i "/\ParallelDownloads = 5/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
@@ -145,7 +145,7 @@ sudo chmod u+rwx ~/ISOBUILD/zfsiso/pacman.conf
 url="https://archzfs.com/archzfs/x86_64/"
 
 # Define the path to the pacman.conf file
-pacman_conf="~/ISOBUILD/zfsiso/pacman.conf"
+pacman_conf="/home/$USER/ISOBUILD/zfsiso/pacman.conf"
 
 # Export the URL so that it can be accessed as an environment variable in Python
 export url
