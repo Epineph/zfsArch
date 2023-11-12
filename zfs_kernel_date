@@ -1,5 +1,6 @@
 #!/bin/bash
 
+sudo pacman -S python-setuptools python-requests python-beautifulsoup4 base-devel --needed
 # This script changes pacman.conf so that the repos align with the date of
 # the latest zfs release. Just change the variable pacman_conf="/path/to/your/pacman.conf".
 # the script also inserts the zfsarch repository and uses SigLevel = optinal TrustAll
