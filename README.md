@@ -140,16 +140,6 @@ a zfs filesytem-based sytem, a solid understanding of linux on a broader level i
 important than being able to memorise how to install arch without a script, even 
 if this is the first arch installation.
 
-If you have a solid grasp on linux and most relevant concepts, then you already know 
-a lot about arch, as well as debian, fedora and redhat. Even if you are an ubuntu user,
-you have probably wondered why you keep ending up on the arch linux wiki, and why
-the information works and is relevant to your problem. When one linux distribution
-forces you to install it with no desktop environment, letting you have access to
-a very underwhelming script and rather let you configure every small detail,
-given that linux distributions are mostly the same presented in different packages,
-then you shouldn't be surprised that the people who have to do so many
-manual configurations and pay attention to so many small details also write the most detailed wiki,
-which probably will be the best source no matter which distribution you are using.
 
 # Feel comfortable relying on your own problem-solving abilities most of the time
 
@@ -187,6 +177,11 @@ Otherwise I think it should work using Manjaro (I haven't checked, but in theory
 I cannot see what it shouldn't). If not, then you have to install arch, which basically
 is also what we do here, as well as a lot more. 
 
+# Make ISO on windows with ArchLinux with WSL2
+
+I have tried using the windows features **wsl2** to install archlinux (which you can find in the windows store) and it works to use to make the iso. In order to be able to use wsl2, if you haven't already done this, press the windows + x (or search for run) and choose run, and then write optionalFeatures and check the box for **Windows Subsystem for Linux** and reboot. I would recommend using the newest terminal for windows, e.g., windows terminal preview on windows store, and powershell 7 preview. Open powershell and write `wsl --update` and set wsl default version as 2 if you haven't already, e.g., `wsl --set-default-version 2`. After setting up arch, you should be able to make the ISO.
+
+
 # Why do this?
 
 Again, since zfs is neither officially supported by arch nor available as a filesystem 
@@ -223,3 +218,7 @@ Remember, if you have several hard-disks you can get substantialt performance in
 disc I/O speed, i.e., faster disc read and write operations, and faster data
 transfer between the physical hard-drives and RAM. Even if you only have one hard-drive, 
 you can still enjoy zfs and its many other features.
+
+# Script automating building the ISO
+
+I have made a script to automate building the arch zfs .iso file. To use  the script, you need to first to give it permission to execute, read and write, i.e., you need to first write `sudo chmod u+rwx nfs_ISO_build_guide.sh` or just `sudo chmod +rwx nfs_ISO_build_guide.sh`. The script needs you to use sudo and needs you password to work. If you are uncomfortable about that, you can just check the script. Alternatively, you can execute the commands youself, but a part of the script executes a nested python script that checks the latest zfs update, and then feeds the information to bash or zsh (or whatever you are using, just don't use fish as your terminal shell) to update the pacman.conf file in order to change the repos so that they align. Otherwise, you may experience issued with incompatible linux kernels with respect to zfs. The script changes the pacman.conf so that packages from the arch archive from the same date the latest zfs release was made are installed. So if you want to do it manually, I would suggest making a bash script that starts with the part that changes the /etc/pacman.conf permissions and ends with `echo "pacman.conf has been updated."`. It might still work even you ignore this part, but I have experienced problems where it doesn't because after the iso was made some new linux kernel has been released, thus the iso will not necessarily be stable over time.
