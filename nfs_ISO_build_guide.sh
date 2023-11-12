@@ -1,5 +1,4 @@
 #!/bin/bash
-# WORK IN PROGRESS - DO NOT RUN YET 
 check_and_install_packages() {
   local missing_packages=()
   
@@ -69,26 +68,11 @@ check_and_install_packages archiso git python-setuptools python-requests python-
 check_and_AUR
 sudo chmod u+rwx /etc/pacman.conf
 sudo cp /etc/pacman.conf /etc/pacman.conf.backup
-
-
-AUR_URL="https://aur.archlinux.org"
-
-for package in zfs-dkms zfs-utils zfsbootmenu
-do
-  git -C ~ clone $AUR_URL/$package
-done
-
-(cd ~/zfs-utils && makepkg --skippgpcheck --noconfirm)
-(cd ~/zfs-utils && makepkg --skippgpcheck --noconfirm)
-(cd ~/zfsbootmenu && makepkg --skippgpcheck --noconfirm --nodeps)
-
-sudo chmod u+rwx ~/ISOBUILD/zfsiso/pacman.conf
-
 # Define the URL
 url="https://archzfs.com/archzfs/x86_64/"
 
 # Define the path to the pacman.conf file
-pacman_conf="/home/$USER/ISOBUILD/zfsiso/pacman.conf"
+pacman_conf="/etc/pacman.conf"
 
 # Export the URL so that it can be accessed as an environment variable in Python
 export url
@@ -167,7 +151,22 @@ fi
 
 echo "pacman.conf has been updated."
 
+#curl -s https://raw.githubusercontent.com/eoli3n/archiso-zfs/master/init
 
+#source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
+
+git -C ~/ clone https://aur.archlinux.org/zfs-dkms.git
+git -C ~/ clone https://aur.archlinux.org/zfs-utils.git
+#git -C ~/ clone https://aur.archlinux.org/zfs-linux-headers.git
+#git -C ~/ clone https://aur.archlinux.org/zfs-linux.git
+#yay --batchinstall --rebuildtree
+
+#(cd ~/zfs-dkms && source PKGBUILD && sudo pacman -f -Syu --noconfirm --needed --asdeps && makepkg --skippgpcheck)
+(cd ~/zfs-dkms && makepkg --skippgpcheck --noconfirm)
+(cd ~/zfs-utils && makepkg --skippgpcheck --noconfirm)
+#(cd ~/zfs-utils && source PKGBUILD && sudo pacman -f -Syu --noconfirm --needed --asdeps && makepkg --skippgpcheck)
+#(cd ~/zfs-linux-headers && makepkg --holdver --skippgpcheck --noconfirm)
+#(cd ~/zfs-linux && makepkg --holdver --skippgpcheck --noconfirm)
 
 mkdir -p ~/ISOBUILD
 
@@ -190,17 +189,15 @@ cd zfsrepo
 cp ~/zfs-dkms/*.zst .
 sleep 2
 cp ~/zfs-utils/*.zst .
-sleep 2
-cd ~/zfsbootmenu/*.zst .
+
 #cp ~/zfs-linux-headers/*.zst .
 #cp ~/zfs-linux/*.zst .
-sleep 3
+
 repo-add zfsrepo.db.tar.gz *.zst
 
 sleep 1
 
-
-#echo -e "\n[zfsrepo]" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
+echo -e "\n[zfsrepo]" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
 echo "SigLevel = Optional TrustAll" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
 echo "Server = file:///home/$USER/ISOBUILD/zfsiso/zfsrepo" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
 
@@ -211,20 +208,107 @@ sed -i "/\[multilib\]/,/Include/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
 echo "linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "zfs-dkms" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "zfs-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-echo "zfsbootmenu" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 #echo "zfs-linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 #echo "zfs-linux" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 
-
+#!/bin/bash
 # Define the URL
-echo -e "\n[community]\nInclude = /etc/pacman.d/mirrorlist" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
+echo -e "\n[community]\nInclude = /etc/pacman.d/mirrorlist" | sudo tee -a ~/zfsArch/pacman.conf
+
+sudo chmod u+rwx ~/ISOBUILD/zfsiso/pacman.conf
+
+url="https://archzfs.com/archzfs/x86_64/"
+
+# Define the path to the pacman.conf file
+pacman_conf="/home/$USER/ISOBUILD/zfsiso/pacman.conf"
+
+# Export the URL so that it can be accessed as an environment variable in Python
+export url
+
+# Run the Python script and capture the formatted date
+formatted_date=$(python3 << 'END_PYTHON'
+import os
+import requests
+from bs4 import BeautifulSoup
+import re
+from datetime import datetime
+
+# Access the URL from the environment variable
+url = os.getenv('url')
+
+# Fetch the HTML content from the URL
+response = requests.get(url)
+
+if response.status_code != 200:
+    print(f"Failed to retrieve the page, status code: {response.status_code}", file=sys.stderr)
+    sys.exit(1)
+
+# Parse the HTML content using BeautifulSoup
+soup = BeautifulSoup(response.text, 'html.parser')
+
+# Define the regular expression pattern for the files we're looking for
+file_pattern = re.compile(r'zfs-linux-\d+.*\.zst')
+
+# Initialize an empty list to store the dates
+dates = []
+
+# Search for the files matching the pattern
+for a_tag in soup.find_all('a', href=True):
+    if file_pattern.search(a_tag['href']):
+        sibling_text = a_tag.next_sibling
+        if sibling_text:
+            parts = sibling_text.strip().split()
+            date = ' '.join(parts[:2])
+            dates.append((a_tag['href'], date))
+
+# Sort the dates
+dates.sort(key=lambda x: x[1], reverse=True)
+
+# Format the most recent date
+if dates:
+    filename, most_recent_date = dates[0]
+    # Parse the date string and reformat it
+    dt = datetime.strptime(most_recent_date, "%d-%b-%Y %H:%M")
+    formatted_date = dt.strftime("%Y/%m/%d")
+    print(formatted_date)
+else:
+    print("No matching files found.", file=sys.stderr)
+    sys.exit(1)
+END_PYTHON
+)
+
+# Check if Python script executed successfully
+if [ $? -eq 0 ]; then
+    echo "Formatted Date: $formatted_date"
+else
+    echo "The Python script failed."
+    exit 1
+fi
 
 
-pacman_conf="/etc/pacman.conf"
+# Continue with your bash script...
 
+# Make the changes for [core], [extra], and [community]
 for repo in core extra community; do
     sed -i "/^\[$repo\]/,/Include/ s|Include = .*|Server = https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch\nSigLevel = PackageRequired|" $pacman_conf
 done
+
+# Add the [archzfs] repository configuration if it doesn't exist
+if ! grep -q "\[archzfs\]" "$pacman_conf"; then
+    echo -e "\n[archzfs]\nServer = https://archzfs.com/\$repo/\$arch\nSigLevel = Optional TrustAll" >> $pacman_conf
+fi
+
+echo "pacman.conf has been updated."
+
+pacman2_conf="/etc/pacman.conf"
+
+for repo in core extra community; do
+    sed -i "/^\[$repo\]/,/Include/ s|Include = .*|Server = https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch\nSigLevel = PackageRequired|" $pacman2_conf
+done
+
+# Add the [archzfs] repository configuration if it doesn't exist
+echo -e "\n[archzfs]\nServer = https://archzfs.com/\$repo/\$arch\nSigLevel = Optional TrustAll" >> $pacman_conf
+
 
 
 cd ~/ISOBUILD/zfsiso
@@ -238,7 +322,6 @@ mkdir {WORK,ISOOUT}
 #awk '/\["\/etc\/shadow"\]="0:0:400"/ { print; print "  [\"/etc/gshadow\"]=\"0:0:0400\""; next }1' ~/ISOBUILD/zfsiso/profiledef.sh > ~/ISOBUILD/zfsiso/profiledef.sh.tmp && mv ~/ISOBUILD/zfsiso/profiledef.sh.tmp ~/ISOBUILD/zfsiso/profiledef.sh
 
 
-(cd ~/ISOBUILD/zfsiso && sudo mkarchiso -v -w WORK -o ISOOUT .)
+(cd ~/ISOBUILD/zfsiso && sudo mkarchiso -v -w WORK -o ISOOUT .) && cp /etc/pacman.conf.backup /etc/pacman.conf
 
-sudo cp /etc/pacman.conf /home/$USER/pacman.conf.modified
-sudo cp /etc/pacman.conf.backup /etc/pacman.conf
+
