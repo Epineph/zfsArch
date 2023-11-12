@@ -133,6 +133,7 @@ sed -i "/\[multilib\]/,/Include/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
 echo "linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "zfs-dkms" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "zfs-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "zfsbootmenu" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 #echo "zfs-linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 #echo "zfs-linux" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 
