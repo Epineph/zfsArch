@@ -68,12 +68,12 @@ check_and_install_packages archiso git python-setuptools python-requests python-
 
 check_and_AUR
 sudo chmod u+rwx /etc/pacman.conf
-sudo cp /etc/pacman.conf.backup
+sudo cp /etc/pacman.conf /etc/pacman.conf.backup
 # Define the URL
 url="https://archzfs.com/archzfs/x86_64/"
 
 # Define the path to the pacman.conf file
-pacman_conf="/home/$USER/pacman.conf"
+pacman_conf="/etc/pacman.conf"
 
 # Export the URL so that it can be accessed as an environment variable in Python
 export url
