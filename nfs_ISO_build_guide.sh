@@ -69,87 +69,6 @@ check_and_AUR
 sudo chmod u+rwx /etc/pacman.conf
 sudo cp /etc/pacman.conf /etc/pacman.conf.backup
 # Define the URL
-url="https://archzfs.com/archzfs/x86_64/"
-
-# Define the path to the pacman.conf file
-pacman_conf="/etc/pacman.conf"
-
-# Export the URL so that it can be accessed as an environment variable in Python
-export url
-
-# Run the Python script and capture the formatted date
-formatted_date=$(python3 << 'END_PYTHON'
-import os
-import requests
-from bs4 import BeautifulSoup
-import re
-from datetime import datetime
-
-# Access the URL from the environment variable
-url = os.getenv('url')
-
-# Fetch the HTML content from the URL
-response = requests.get(url)
-
-if response.status_code != 200:
-    print(f"Failed to retrieve the page, status code: {response.status_code}", file=sys.stderr)
-    sys.exit(1)
-
-# Parse the HTML content using BeautifulSoup
-soup = BeautifulSoup(response.text, 'html.parser')
-
-# Define the regular expression pattern for the files we're looking for
-file_pattern = re.compile(r'zfs-linux-\d+.*\.zst')
-
-# Initialize an empty list to store the dates
-dates = []
-
-# Search for the files matching the pattern
-for a_tag in soup.find_all('a', href=True):
-    if file_pattern.search(a_tag['href']):
-        sibling_text = a_tag.next_sibling
-        if sibling_text:
-            parts = sibling_text.strip().split()
-            date = ' '.join(parts[:2])
-            dates.append((a_tag['href'], date))
-
-# Sort the dates
-dates.sort(key=lambda x: x[1], reverse=True)
-
-# Format the most recent date
-if dates:
-    filename, most_recent_date = dates[0]
-    # Parse the date string and reformat it
-    dt = datetime.strptime(most_recent_date, "%d-%b-%Y %H:%M")
-    formatted_date = dt.strftime("%Y/%m/%d")
-    print(formatted_date)
-else:
-    print("No matching files found.", file=sys.stderr)
-    sys.exit(1)
-END_PYTHON
-)
-
-# Check if Python script executed successfully
-if [ $? -eq 0 ]; then
-    echo "Formatted Date: $formatted_date"
-else
-    echo "The Python script failed."
-    exit 1
-fi
-
-# Continue with your bash script...
-
-# Make the changes for [core], [extra], and [community]
-for repo in core extra community; do
-    sed -i "/^\[$repo\]/,/Include/ s|Include = .*|Server = https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch\nSigLevel = PackageRequired|" $pacman_conf
-done
-
-# Add the [archzfs] repository configuration if it doesn't exist
-if ! grep -q "\[archzfs\]" "$pacman_conf"; then
-    echo -e "\n[archzfs]\nServer = https://archzfs.com/\$repo/\$arch\nSigLevel = Optional TrustAll" >> $pacman_conf
-fi
-
-echo "pacman.conf has been updated."
 
 #curl -s https://raw.githubusercontent.com/eoli3n/archiso-zfs/master/init
 
@@ -189,7 +108,7 @@ cd zfsrepo
 cp ~/zfs-dkms/*.zst .
 sleep 2
 cp ~/zfs-utils/*.zst .
-
+sleep 2
 #cp ~/zfs-linux-headers/*.zst .
 #cp ~/zfs-linux/*.zst .
 
@@ -211,7 +130,7 @@ echo "zfs-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 #echo "zfs-linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 #echo "zfs-linux" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 
-#!/bin/bash
+
 # Define the URL
 echo -e "\n[community]\nInclude = /etc/pacman.d/mirrorlist" | sudo tee -a ~/zfsArch/pacman.conf
 
@@ -302,12 +221,14 @@ echo "pacman.conf has been updated."
 
 pacman2_conf="/etc/pacman.conf"
 
+# Add the [archzfs] repository configuration if it doesn't exist
+if ! grep -q "\[archzfs\]" "$pacman_conf"; then
+    echo -e "\n[archzfs]\nServer = https://archzfs.com/\$repo/\$arch\nSigLevel = Optional TrustAll" >> $pacman_conf
+fi
+
 for repo in core extra community; do
     sed -i "/^\[$repo\]/,/Include/ s|Include = .*|Server = https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch\nSigLevel = PackageRequired|" $pacman2_conf
 done
-
-# Add the [archzfs] repository configuration if it doesn't exist
-echo -e "\n[archzfs]\nServer = https://archzfs.com/\$repo/\$arch\nSigLevel = Optional TrustAll" >> $pacman_conf
 
 
 
