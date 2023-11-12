@@ -71,22 +71,22 @@ sudo chmod u+rwx /etc/pacman.conf
 sudo cp /etc/pacman.conf /etc/pacman.conf.backup
 
 
+AUR_URL="https://aur.archlinux.org"
+for string ("zfs-dkms" "zfs-utils" "zfsbootmenu"
+) git -C ~ -clone $AUR_URL/$string && (cd ~/$STRING && makepkg --skippgpcheck --noconfirm --nodeps)
+
 #curl -s https://raw.githubusercontent.com/eoli3n/archiso-zfs/master/init
 
 #source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
 #source PKGBUILD && yes | yay -Syu --noconfirm --needed --asdeps --batchinstall --sudoloop "${makedepends[@]}" "${depends[@]}"
 
-git -C ~/ clone https://aur.archlinux.org/zfs-dkms.git
-git -C ~/ clone https://aur.archlinux.org/zfs-utils.git
-#git -C ~/ clone https://aur.archlinux.org/zfs-linux-headers.git
-#git -C ~/ clone https://aur.archlinux.org/zfs-linux.git
-#yay --batchinstall --rebuildtree
-git -C ~/ clone https://aur.archlinux.org/zfsbootmenu.git
+
+
 
 #(cd ~/zfs-dkms && source PKGBUILD && sudo pacman -f -Syu --noconfirm --needed --asdeps && makepkg --skippgpcheck)
-(cd ~/zfs-dkms && makepkg --skippgpcheck --noconfirm)
-(cd ~/zfs-utils && makepkg --skippgpcheck --noconfirm)
-(cd ~/zfsbootmenu && makepkg --skippgpcheck --noconfirm --nodeps)
+#(cd ~/zfs-dkms && makepkg --skippgpcheck --noconfirm)
+#(cd ~/zfs-utils && makepkg --skippgpcheck --noconfirm)
+#(cd ~/zfsbootmenu && makepkg --skippgpcheck --noconfirm --nodeps)
 #(cd ~/zfs-utils && source PKGBUILD && sudo pacman -f -Syu --noconfirm --needed --asdeps && makepkg --skippgpcheck)
 #(cd ~/zfs-linux-headers && makepkg --holdver --skippgpcheck --noconfirm)
 #(cd ~/zfs-linux && makepkg --holdver --skippgpcheck --noconfirm)
