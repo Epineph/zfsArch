@@ -91,58 +91,6 @@ git -C ~/ clone https://aur.archlinux.org/zfsbootmenu.git
 #(cd ~/zfs-linux-headers && makepkg --holdver --skippgpcheck --noconfirm)
 #(cd ~/zfs-linux && makepkg --holdver --skippgpcheck --noconfirm)
 
-mkdir -p ~/ISOBUILD
-
-cp -r /usr/share/archiso/configs/releng ~/ISOBUILD/
-
-sleep 1
-
-cd ~/ISOBUILD
-
-mv releng/ zfsiso
-
-
-
-cd zfsiso
-
-mkdir zfsrepo
-
-cd zfsrepo
-
-cp ~/zfs-dkms/*.zst .
-sleep 2
-cp ~/zfs-utils/*.zst .
-sleep 2
-cd ~/zfsbootmenu/*.zst .
-#cp ~/zfs-linux-headers/*.zst .
-#cp ~/zfs-linux/*.zst .
-sleep 3
-repo-add zfsrepo.db.tar.gz *.zst
-
-sleep 1
-
-
-#echo -e "\n[zfsrepo]" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
-echo "SigLevel = Optional TrustAll" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
-echo "Server = file:///home/$USER/ISOBUILD/zfsiso/zfsrepo" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
-
-sed -i "/\ParallelDownloads = 5/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
-
-sed -i "/\[multilib\]/,/Include/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
-
-echo "linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-echo "zfs-dkms" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-echo "zfs-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-echo "zfsbootmenu" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-#echo "zfs-linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-#echo "zfs-linux" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-
-
-# Define the URL
-echo -e "\n[community]\nInclude = /etc/pacman.d/mirrorlist" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
-
-
-
 sudo chmod u+rwx ~/ISOBUILD/zfsiso/pacman.conf
 
 # Define the URL
@@ -227,6 +175,65 @@ if ! grep -q "\[archzfs\]" "$pacman_conf"; then
 fi
 
 echo "pacman.conf has been updated."
+
+
+
+mkdir -p ~/ISOBUILD
+
+cp -r /usr/share/archiso/configs/releng ~/ISOBUILD/
+
+sleep 1
+
+cd ~/ISOBUILD
+
+mv releng/ zfsiso
+
+
+
+cd zfsiso
+
+mkdir zfsrepo
+
+cd zfsrepo
+
+cp ~/zfs-dkms/*.zst .
+sleep 2
+cp ~/zfs-utils/*.zst .
+sleep 2
+cd ~/zfsbootmenu/*.zst .
+#cp ~/zfs-linux-headers/*.zst .
+#cp ~/zfs-linux/*.zst .
+sleep 3
+repo-add zfsrepo.db.tar.gz *.zst
+
+sleep 1
+
+
+#echo -e "\n[zfsrepo]" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
+echo "SigLevel = Optional TrustAll" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
+echo "Server = file:///home/$USER/ISOBUILD/zfsiso/zfsrepo" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
+
+sed -i "/\ParallelDownloads = 5/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
+
+sed -i "/\[multilib\]/,/Include/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
+
+echo "linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "zfs-dkms" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "zfs-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "zfsbootmenu" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+#echo "zfs-linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+#echo "zfs-linux" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+
+
+# Define the URL
+echo -e "\n[community]\nInclude = /etc/pacman.d/mirrorlist" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
+
+
+pacman_conf="/etc/pacman.conf"
+
+for repo in core extra community; do
+    sed -i "/^\[$repo\]/,/Include/ s|Include = .*|Server = https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch\nSigLevel = PackageRequired|" $pacman_conf
+done
 
 
 cd ~/ISOBUILD/zfsiso
