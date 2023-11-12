@@ -74,7 +74,7 @@ sudo cp /etc/pacman.conf /etc/pacman.conf.backup
 #curl -s https://raw.githubusercontent.com/eoli3n/archiso-zfs/master/init
 
 #source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
-#source PKGBUILD && autoyay -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
+#source PKGBUILD && yes | yay -Syu --noconfirm --needed --asdeps --batchinstall --sudoloop "${makedepends[@]}" "${depends[@]}"
 
 git -C ~/ clone https://aur.archlinux.org/zfs-dkms.git
 git -C ~/ clone https://aur.archlinux.org/zfs-utils.git
