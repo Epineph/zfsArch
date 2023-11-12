@@ -564,6 +564,7 @@ nano /etc/pacman.conf
 
 ```
 [archzfs]
+SigLevel = Optional TrustAll
 Server = https://archzfs.com/$repo/x86_64
 ```
 
@@ -574,8 +575,8 @@ or do it like this:
 echo -e "[archzfs]\nServer = https://archzfs.com/\$repo/\$arch\nSigLevel = Optional TrustAll" >> /etc/pacman.conf
 ```
 
-Then import and sign this key:
-
+Then import and sign this key. It should not be necessary since if you include the "SigLevel = OptionalTrustAll". Just just "pacman -Syy" and it should ask if you want to import the key and just say yes.
+Alternatively:
 ```bash
 # ArchZFS GPG keys (see https://wiki.archlinux.org/index.php/Unofficial_user_repositories#archzfs)
 pacman-key -r DDF7DB817396A49B2A2723F7403BD972F75D9D76
@@ -610,6 +611,8 @@ Just use your favorite editor (e.g., nano or vim) or, for example:
 
 ```bash
 sudo sed -i 's/^HOOKS=.*/HOOKS=(base udev autodetect modconf block keyboard zfs filesystem)/' /etc/mkinitcpio.conf
+
+zgenhostid ${hostid}
 ```
 
 Here are some important packages (you have have installed some of them already):
@@ -630,6 +633,8 @@ Or
 sudo sed -i 's/^GRUB_CMDLINE_LINUX=.*/GRUB_CMDLINE_LINUX="root=ZFS=zroot\/ROOT\/default"/' /etc/default/grub
 ```
 
+If you for some reason forget this and boot up, which means you won't be able to get into your newly installed system, then reboot. When you reach grub, press e to edit and in there change the image so that root=ZFS=zroot/ROOT/default. Then remember the change it in /etc/default/grub so you don't run into this problem next time.
+
 This part is important. Before when we created the zpool, we included
 `compatibility=grub2`
 
@@ -642,6 +647,11 @@ grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ArchL
 
 grub-mkconfig -o /boot/grub/grub.cfg
 ```
+
+Set Domain in idmapd.conf on server and clients.
+```
+zfs set sharenfs=rw=@10.0.0.0/24 pool:a/DATA/path/name
+systemctl enable nfs-server.service zfs-share.service --now
 
 systemctl enable NetworkManager
 
@@ -660,6 +670,8 @@ systemctl enable zfs-share
 systemctl enable zfs-zed
 
 ssystemctl enable zfs.target
+
+systemctl enable zfs-import.target
 
 ln -sf /usr/share/zoneinfo/Europe/Copenhagen /etc/localtime
 hwclock --systohcno
@@ -688,16 +700,9 @@ EDITOR=nano visudo
 #uncomment this line
 %wheel ALL=(ALL) ALL
 
-cd /etc/xdg/reflector
+exit # until you are outside chroot
+zfs umount -a
+umount -R /mnt
 
-mv reflector.conf reflector.conf.orig
-cp reflector.conf.orig reflector.conf
-nano reflector.conf
-
-#/etc/xdg/reflector/reflector.conf
---country Denmark,Germany,United Kingdom,Sweden,Norway,Iceland,Netherlands,France
---protocol https
---latest 5
---sort rate
---save /etc/pacman.d/mirrorlist
-
+zpool export zroot
+```
