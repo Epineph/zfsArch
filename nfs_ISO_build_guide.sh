@@ -73,8 +73,8 @@ sudo cp /etc/pacman.conf /etc/pacman.conf.backup
 
 AUR_URL="https://aur.archlinux.org"
 
-for string ("zfs-dkms.git" "zfs-utils.git" "zfsbootmenu.git"
-) do git -C ~ clone $AUR_URL/$string;
+(for string ("zfs-dkms" "zfs-utils" "zfsbootmenu"
+) git -C ~ clone $AUR_URL/$string)
 
 (cd ~/zfs-utils && makepkg --skippgpcheck --noconfirm)
 (cd ~/zfs-utils && makepkg --skippgpcheck --noconfirm)
