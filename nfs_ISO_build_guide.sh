@@ -230,7 +230,7 @@ for repo in core extra community; do
 done
 
 # Add the [archzfs] repository configuration if it doesn't exist
-if ! grep -q "\[archzfs\]" "$pacman2_conf"; then
+if ! grep -q "\[archzfs\]" "$pacman_conf"; then
     echo -e "\n[archzfs]\nServer = https://archzfs.com/\$repo/\$arch\nSigLevel = Optional TrustAll" >> $pacman_conf
 fi
 
@@ -239,8 +239,8 @@ echo "pacman.conf has been updated."
 pacman2_conf="/etc/pacman.conf"
 
 # Add the [archzfs] repository configuration if it doesn't exist
-if ! grep -q "\[archzfs\]" "$pacman_conf"; then
-    echo -e "\n[archzfs]\nServer = https://archzfs.com/\$repo/\$arch\nSigLevel = Optional TrustAll" >> $pacman_conf
+if ! grep -q "\[archzfs\]" "$pacman2_conf"; then
+    echo -e "\n[archzfs]\nServer = https://archzfs.com/\$repo/\$arch\nSigLevel = Optional TrustAll" >> $pacman2_conf
 fi
 
 for repo in core extra community; do
