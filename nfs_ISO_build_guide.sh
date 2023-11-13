@@ -77,12 +77,10 @@ mkdir -p ~/builtPackages
 
 git -C ~/builtPackages clone https://aur.archlinux.org/zfs-dkms.git 
 git -C ~/builtPackages clone https://aur.archlinux.org/zfs-utils.git
-git -C ~/builtPackages clone https://aur.archlinux.org/systemd-boot-pacman-hook.git
-git -C ~/builtPackages clone https://aur.archlinux.org/downgrade.git
+
 
 (cd ~/builtPackages/zfs-utils && makepkg --skippgpcheck --noconfirm)
 (cd ~/builtPackages/zfs-dkms && makepkg --skippgpcheck --noconfirm)
-(cd ~/builtPackages/downgrade && makepkg --skippgpcheck --noconfirm)
 #(cd ~/zfs-utils && source PKGBUILD && sudo pacman -f -Syu --noconfirm --needed --asdeps && makepkg --skippgpcheck)
 #(cd ~/zfs-linux-headers && makepkg --holdver --skippgpcheck --noconfirm)
 #(cd ~/zfs-linux && makepkg --holdver --skippgpcheck --noconfirm)
@@ -108,8 +106,7 @@ cd zfsrepo
 cp ~/builtPackages/zfs-dkms/*.zst .
 sleep 2
 cp ~/builtPackages/zfs-utils/*.zst .
-sleep 2
-cp ~/builtPackages/downgrade/*.zst .
+
 sleep 2
 
 repo-add zfsrepo.db.tar.gz *.zst
@@ -143,7 +140,6 @@ echo "github-cli" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "hwdetect" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "libnfs" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "findutils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-echo "downgrade" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 
 
 
