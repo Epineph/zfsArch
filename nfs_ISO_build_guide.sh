@@ -1,4 +1,4 @@
-#!/bin/bash
+cv#!/bin/bash
 check_and_install_packages() {
   local missing_packages=()
   
@@ -83,7 +83,6 @@ git -C ~/builtPackages clone https://aur.archlinux.org/downgrade.git
 (cd ~/builtPackages/zfs-utils && makepkg --skippgpcheck --noconfirm)
 (cd ~/builtPackages/zfs-dkms && makepkg --skippgpcheck --noconfirm)
 (cd ~/builtPackages/downgrade && makepkg --skippgpcheck --noconfirm)
-(cd ~/builtPackages/systemd-boot-pacman-hook && makepkg --skippgpcheck --noconfirm)
 #(cd ~/zfs-utils && source PKGBUILD && sudo pacman -f -Syu --noconfirm --needed --asdeps && makepkg --skippgpcheck)
 #(cd ~/zfs-linux-headers && makepkg --holdver --skippgpcheck --noconfirm)
 #(cd ~/zfs-linux && makepkg --holdver --skippgpcheck --noconfirm)
@@ -111,8 +110,6 @@ sleep 2
 cp ~/builtPackages/zfs-utils/*.zst .
 sleep 2
 cp ~/builtPackages/downgrade/*.zst .
-sleep 2
-cp ~/builtPackages/systemd-boot-pacman-hook/*.zst .
 sleep 2
 
 repo-add zfsrepo.db.tar.gz *.zst
@@ -147,7 +144,7 @@ echo "hwdetect" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "libnfs" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "findutils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "downgrade" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-echo "systemd-boot-pacman-hook " | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+
 
 
 
