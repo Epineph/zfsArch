@@ -1,5 +1,5 @@
 #!/bin/bash
-https://gist.github.com/Epineph/da88f9f8dabf91278a09655beeed0b6e
+#https://gist.github.com/Epineph/da88f9f8dabf91278a09655beeed0b6e
 
 sudo pacman -S python-setuptools python-requests python-beautifulsoup4 base-devel --needed
 # This script changes pacman.conf so that the repos align with the date of
@@ -11,7 +11,7 @@ sudo pacman -S python-setuptools python-requests python-beautifulsoup4 base-deve
 url="https://archzfs.com/archzfs/x86_64/"
 
 # Define the path to the pacman.conf file
-pacman_conf="/home/$USER/pacman.conf"
+pacman_conf="/etc/pacman.comf"
 
 # Export the URL so that it can be accessed as an environment variable in Python
 export url
@@ -70,7 +70,7 @@ fi
 # Continue with your bash script...
 
 # Make the changes for [core], [extra], and [community]
-for repo in core extra community; do
+for repo in core extra community multilib; do
     sed -i "/^\[$repo\]/,/Include/ s|Include = .*|Server = https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch\nSigLevel = PackageRequired|" $pacman_conf
 done
 
