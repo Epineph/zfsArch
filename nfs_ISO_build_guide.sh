@@ -66,7 +66,7 @@ check_and_AUR() {
 check_and_install_packages archiso git python-setuptools python-requests python-beautifulsoup4 base-devel pacman-contrib sof-firmware
 
 check_and_AUR
-sudo chmod u+rwx /etc/pacman.conf
+sudo chmod +rwx /etc/pacman.conf
 sudo cp /etc/pacman.conf /etc/pacman.conf.backup
 # Define the URL
 
@@ -113,7 +113,7 @@ sleep 2
 cp ~/builtPackages/downgrade/*.zst .
 sleep 2
 cp ~/builtPackages/systemd-boot-pacman-hook/*.zst .
-
+sleep 2
 
 repo-add zfsrepo.db.tar.gz *.zst
 
@@ -152,8 +152,8 @@ echo "systemd-boot-pacman-hook " | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 
 
 # Define the URL
-echo -e "\n[community]\nInclude = /etc/pacman.d/mirrorlist" | sudo tee -a ~/zfsArch/pacman.conf
-
+echo -e "\n[community]\nInclude = /etc/pacman.d/mirrorlist" | sudo tee -a ~/ISOBUILD/zfsiso/pacman.conf
+echo -e "\n[community]\nInclude = /etc/pacman.d/mirrorlist" | sudo tee -a ~/etc/pacman.conf
 sudo chmod u+rwx ~/ISOBUILD/zfsiso/pacman.conf
 
 url="https://archzfs.com/archzfs/x86_64/"
