@@ -75,13 +75,13 @@ sudo cp /etc/pacman.conf /etc/pacman.conf.backup
 #source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
 mkdir -p ~/builtPackages
 
-git -C ~/builtPackages clone https://aur.archlinux.org/zfs-dkms-git.git 
-git -C ~/builtPackages clone https://aur.archlinux.org/zfs-utils-git.git
+git -C ~/builtPackages clone https://aur.archlinux.org/zfs-dkms.git 
+git -C ~/builtPackages clone https://aur.archlinux.org/zfs-utils.git
 git -C ~/builtPackages clone https://aur.archlinux.org/systemd-boot-pacman-hook.git
 git -C ~/builtPackages clone https://aur.archlinux.org/downgrade.git
 
-(cd ~/builtPackages/zfs-utils-git && makepkg --skippgpcheck --noconfirm)
-(cd ~/builtPackages/zfs-dkms-git && makepkg --skippgpcheck --noconfirm)
+(cd ~/builtPackages/zfs-utils && makepkg --skippgpcheck --noconfirm)
+(cd ~/builtPackages/zfs-dkms && makepkg --skippgpcheck --noconfirm)
 (cd ~/builtPackages/downgrade && makepkg --skippgpcheck --noconfirm)
 #(cd ~/zfs-utils && source PKGBUILD && sudo pacman -f -Syu --noconfirm --needed --asdeps && makepkg --skippgpcheck)
 #(cd ~/zfs-linux-headers && makepkg --holdver --skippgpcheck --noconfirm)
@@ -125,8 +125,8 @@ sed -i "/\ParallelDownloads = 5/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
 sed -i "/\[multilib\]/,/Include/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
 
 echo "linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-echo "zfs-dkms-git" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-echo "zfs-utils-git" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "zfs-dkms" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "zfs-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 #echo "zfs-linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 #echo "zfs-linux" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "pacman-contrib" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
