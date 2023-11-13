@@ -73,16 +73,17 @@ sudo cp /etc/pacman.conf /etc/pacman.conf.backup
 #curl -s https://raw.githubusercontent.com/eoli3n/archiso-zfs/master/init
 
 #source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
+mkdir -p ~/builtPackages
 
-git -C ~/ clone https://aur.archlinux.org/zfs-dkms.git
-git -C ~/ clone https://aur.archlinux.org/zfs-utils.git
-#git -C ~/ clone https://aur.archlinux.org/zfs-linux-headers.git
-#git -C ~/ clone https://aur.archlinux.org/zfs-linux.git
-#yay --batchinstall --rebuildtree
+git -C ~/builtPackages clone https://aur.archlinux.org/zfs-dkms.git
+git -C ~/builtPackages clone https://aur.archlinux.org/zfs-utils.git
+git -C ~/builtPackages clone https://aur.archlinux.org/systemd-boot-pacman-hook.git
+git -C ~/builtPackages clone https://aur.archlinux.org/downgrade.git
 
-#(cd ~/zfs-dkms && source PKGBUILD && sudo pacman -f -Syu --noconfirm --needed --asdeps && makepkg --skippgpcheck)
-(cd ~/zfs-dkms && makepkg --skippgpcheck --noconfirm)
-(cd ~/zfs-utils && makepkg --skippgpcheck --noconfirm)
+(cd ~/builtPackages/zfs-utils && makepkg --skippgpcheck --noconfirm)
+(cd ~/builtPackages/zfs-dkms && makepkg --skippgpcheck --noconfirm)
+(cd ~/builtPackages/downgrade && makepkg --skippgpcheck --noconfirm)
+(cd ~/builtPackages/systemd-boot-pacman-hook && makepkg --skippgpcheck --noconfirm)
 #(cd ~/zfs-utils && source PKGBUILD && sudo pacman -f -Syu --noconfirm --needed --asdeps && makepkg --skippgpcheck)
 #(cd ~/zfs-linux-headers && makepkg --holdver --skippgpcheck --noconfirm)
 #(cd ~/zfs-linux && makepkg --holdver --skippgpcheck --noconfirm)
@@ -105,12 +106,14 @@ mkdir zfsrepo
 
 cd zfsrepo
 
-cp ~/zfs-dkms/*.zst .
+cp ~/builtPackages/zfs-dkms/*.zst .
 sleep 2
-cp ~/zfs-utils/*.zst .
+cp ~/builtPackages/zfs-utils/*.zst .
 sleep 2
-#cp ~/zfs-linux-headers/*.zst .
-#cp ~/zfs-linux/*.zst .
+cp ~/builtPackages/downgrade/*.zst .
+sleep 2
+cp ~/builtPackages/systemd-boot-pacman-hook/*.zst .
+
 
 repo-add zfsrepo.db.tar.gz *.zst
 
@@ -129,6 +132,23 @@ echo "zfs-dkms" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "zfs-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 #echo "zfs-linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 #echo "zfs-linux" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "pacman-contrib" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "wget" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "rsync" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "curl" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "git" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "mkinitcpio-archiso" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "mkinitcpio-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "mkinitcpio-systemd-tool" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "mkinitcpio-nfs-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "neovim" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "github-cli" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "hwdetect" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "libnfs" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "findutils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "downgrade" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "systemd-boot-pacman-hook " | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+
 
 
 # Define the URL
