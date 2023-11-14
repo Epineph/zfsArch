@@ -1,4 +1,4 @@
-cv#!/bin/bash
+#!/bin/bash
 check_and_install_packages() {
   local missing_packages=()
   
