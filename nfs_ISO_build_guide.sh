@@ -1,7 +1,7 @@
 #!/bin/bash
 check_and_install_packages() {
   local missing_packages=()
-  
+
   # Check which packages are not installed
   for package in "$@"; do
     if ! pacman -Qi "$package" &> /dev/null; then
@@ -81,24 +81,45 @@ check_and_AUR() {
 check_and_install_packages archiso git python-setuptools python-requests python-beautifulsoup4 base-devel pacman-contrib sof-firmware
 
 check_and_AUR
-sudo chmod +rwx /etc/pacman.conf
-sudo cp /etc/pacman.conf /etc/pacman.conf.backup
-# Define the URL
 
-#curl -s https://raw.githubusercontent.com/eoli3n/archiso-zfs/master/init
+clone() {
+    # Define the build directory
+    build_dir=~/builtPackages
 
-#source PKGBUILD && pacman -Syu --noconfirm --needed --asdeps "${makedepends[@]}" "${depends[@]}"
-mkdir -p ~/builtPackages
+    # Ensure the build directory exists
+    mkdir -p "$build_dir"
 
-git -C ~/builtPackages clone https://aur.archlinux.org/zfs-dkms.git 
-git -C ~/builtPackages clone https://aur.archlinux.org/zfs-utils.git
+    # Check if the first argument is an HTTP URL
+    if [[ $1 == http* ]]; then
+        # Handle AUR links
+        if [[ $1 == *aur.archlinux.org* ]]; then
+            # Clone the repository
+            git -C "$build_dir" clone "$1"
+            # Change to the repository's directory
+            repo_name=$(basename "$1" .git)
+            cd "$build_dir/$repo_name"
 
+            # Build or install based on the second argument
+            if [[ $2 == build ]]; then
+                makepkg --skippgpcheck --noconfirm
+            elif [[ $2 == install ]]; then
+                makepkg -si
+            fi
+        else
+            # Clone non-AUR links
+            if [[ $1 != *".git" ]]; then
+                git clone "$1.git"
+            else
+                git clone "$1"
+            fi
+        fi
+    else
+        # Clone GitHub repos given in the format username/repository
+        git clone "https://github.com/$1.git"
+    fi
+}
 
-(cd ~/builtPackages/zfs-utils && makepkg --skippgpcheck --noconfirm)
-(cd ~/builtPackages/zfs-dkms && makepkg --skippgpcheck --noconfirm)
-#(cd ~/zfs-utils && source PKGBUILD && sudo pacman -f -Syu --noconfirm --needed --asdeps && makepkg --skippgpcheck)
-#(cd ~/zfs-linux-headers && makepkg --holdver --skippgpcheck --noconfirm)
-#(cd ~/zfs-linux && makepkg --holdver --skippgpcheck --noconfirm)
+(clone https://aur.archlinux.org/zfs-dkms.git build && clone https://aur.archlinux.org/zfs-utils.git build)
 
 mkdir -p ~/ISOBUILD
 
@@ -139,8 +160,6 @@ sed -i "/\[multilib\]/,/Include/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
 echo "linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "zfs-dkms" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "zfs-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-#echo "zfs-linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-#echo "zfs-linux" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "pacman-contrib" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "wget" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "rsync" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
@@ -261,20 +280,11 @@ else
 fi
 
 
-
 cd ~/ISOBUILD/zfsiso
 mkdir {WORK,ISOOUT}
-
-# Create the gshadow file
-#echo "root:$USER" | sudo tee ~/ISOBUILD/zfsiso/airootfs/etc/gshadow
-
-
-# Modify the profile.sh file to include the gshadow permissions
-#awk '/\["\/etc\/shadow"\]="0:0:400"/ { print; print "  [\"/etc/gshadow\"]=\"0:0:0400\""; next }1' ~/ISOBUILD/zfsiso/profiledef.sh > ~/ISOBUILD/zfsiso/profiledef.sh.tmp && mv ~/ISOBUILD/zfsiso/profiledef.sh.tmp ~/ISOBUILD/zfsiso/profiledef.sh
 
 
 (cd ~/ISOBUILD/zfsiso && sudo mkarchiso -v -w WORK -o ISOOUT .)
 
 
 )
-
