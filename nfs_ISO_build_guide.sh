@@ -33,6 +33,21 @@ check_and_install_packages() {
 
 
 (
+# Get the current language setting
+current_lang=$(locale | grep "^LANG=" | cut -d= -f2)
+
+# If the LANG variable is not set, default to 'C'
+if [ -z "$current_lang" ]; then
+    current_lang="C"
+fi
+
+# Export the LC_ALL and LANGUAGE
+export LC_ALL="C"
+export LANGUAGE="$current_lang"
+
+# Verify settings
+echo "Locale settings: LC_ALL=$LC_ALL, LANGUAGE=$LANGUAGE"
+
 check_and_AUR() {
   local package="$1"
   local aur_helper
