@@ -32,7 +32,7 @@ check_and_install_packages() {
 }
 
 
-
+(
 check_and_AUR() {
   local package="$1"
   local aur_helper
@@ -230,18 +230,20 @@ if ! grep -q "\[archzfs\]" "$pacman_conf"; then
     echo -e "\n[archzfs]\nServer = https://archzfs.com/\$repo/\$arch\nSigLevel = Optional TrustAll" >> $pacman_conf
 fi
 
-echo "pacman.conf has been updated."
+# Define the path to your pacman.conf file
+pacman_conf="~/ISOBUILD/zfsiso/pacman.conf"
 
-pacman2_conf="/etc/pacman.conf"
+# Define the new XferCommand
+new_xfer_command="XferCommand = /usr/bin/curl -L -C - --max-time 300 --retry 3 --retry-delay 3 '%u' > '%o'"
 
-# Add the [archzfs] repository configuration if it doesn't exist
-if ! grep -q "\[archzfs\]" "$pacman2_conf"; then
-    echo -e "\n[archzfs]\nServer = https://archzfs.com/\$repo/\$arch\nSigLevel = Optional TrustAll" >> $pacman2_conf
+# Check if XferCommand (commented or uncommented) exists in the file
+if grep -q "^#XferCommand\|^XferCommand" "$pacman_conf"; then
+    # Modify the existing XferCommand line, whether it's commented or not
+    sed -i "/^#XferCommand\|^XferCommand/c\\$new_xfer_command" "$pacman_conf"
+else
+    # If XferCommand does not exist at all, add it
+    echo "$new_xfer_command" >> "$pacman_conf"
 fi
-
-for repo in core extra community; do
-    sed -i "/^\[$repo\]/,/Include/ s|Include = .*|Server = https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch\nSigLevel = PackageRequired|" $pacman2_conf
-done
 
 
 
@@ -258,6 +260,6 @@ mkdir {WORK,ISOOUT}
 
 (cd ~/ISOBUILD/zfsiso && sudo mkarchiso -v -w WORK -o ISOOUT .)
 
-sudo cp /etc/pacman.conf.backup /etc/pacman.conf
 
+)
 
