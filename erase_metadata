@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# When creating filesystems with zfs, you may run into the problem that you want to re-use a zpool name from a previous, perhaps not longer existing, partition or disc,
+# but you cannot. This is becasue of metadata. If you want to erase metadata on a partition  (e.g., /dev/nvme0n1pX or /dev/sdaY, 'X' and 'Y' representing your partition number)
+# the following script may help you with this
 list_devices() {
     echo "Available devices:"
     lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
