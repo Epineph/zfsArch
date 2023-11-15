@@ -119,7 +119,7 @@ clone() {
     fi
 }
 
-(clone https://aur.archlinux.org/zfs-dkms.git build && clone https://aur.archlinux.org/zfs-utils.git build)
+(clone https://aur.archlinux.org/zfs-dkms-raidz-expansion-git.git build && clone https://aur.archlinux.org/zfs-utils-raidz-expansion-git.git build)
 
 mkdir -p ~/ISOBUILD
 
@@ -158,8 +158,8 @@ sed -i "/\ParallelDownloads = 5/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
 sed -i "/\[multilib\]/,/Include/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
 
 echo "linux-headers" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-echo "zfs-dkms" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
-echo "zfs-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "zfs-dkms-raidz-expansion-git" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo "zfs-utils-raidz-expansion-git" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "pacman-contrib" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "wget" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
 echo "rsync" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
