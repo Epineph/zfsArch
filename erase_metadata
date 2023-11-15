@@ -1,0 +1,12 @@
+#!/bin/bash
+erase_disc_metadata(){
+  dd if=/dev/zero of="$1" seek=$((                \
+  $(blockdev --getsz "$1") - ( ( 256 * 1024 * 2)  \
+  $(blockdev --getpbsz "$1") ) ))
+}
+
+check_erase_disc_metadata(){
+  echo "dd if=/dev/zero of="$1" seek=$((                \
+  $(blockdev --getsz "$1") - ( ( 256 * 1024 * 2)  \
+  $(blockdev --getpbsz "$1") ) ))"
+}
