@@ -1,12 +1,27 @@
 #!/bin/bash
-erase_disc_metadata(){
-  dd if=/dev/zero of="$1" seek=$((                \
-  $(blockdev --getsz "$1") - ( ( 256 * 1024 * 2)  \
-  $(blockdev --getpbsz "$1") ) ))
+
+list_devices() {
+    echo "Available devices:"
+    lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
 }
 
-check_erase_disc_metadata(){
-  echo "dd if=/dev/zero of="$1" seek=$((                \
-  $(blockdev --getsz "$1") - ( ( 256 * 1024 * 2)  \
-  $(blockdev --getpbsz "$1") ) ))"
+erase_disc_metadata() {
+    echo "Erasing metadata from $1..."
+    dd if=/dev/zero of="$1" seek=$(($(blockdev --getsz "$1") - ( ( 256 * 1024 * 2)  / $(blockdev --getpbsz "$1") ) ))
 }
+
+echo "WARNING: This script will erase disk metadata and can lead to data loss."
+list_devices
+read -p "Enter the device name (e.g., /dev/sda, /dev/nvme0n1): " device
+
+if [ -b "$device" ]; then
+    read -p "Are you sure you want to erase metadata from $device? (yes/no): " confirmation
+    if [ "$confirmation" == "yes" ]; then
+        erase_disc_metadata "$device"
+        echo "Metadata erased from $device."
+    else
+        echo "Operation canceled."
+    fi
+else
+    echo "Invalid device name."
+fi
