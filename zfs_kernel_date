@@ -75,7 +75,9 @@ else
     exit 1
 fi
 
-# Continue with your bash script...
+if ! grep -q "\[community\]" "$pacman_conf"; then
+    echo -e "\n[community]\nInclude = /etc/pacman.d/mirrorlist" >> $pacman_conf
+fi
 
 # Make the changes for [core], [extra], and [community]
 for repo in core extra community; do
