@@ -1,6 +1,4 @@
 #!/bin/bash
-#https://gist.github.com/Epineph/da88f9f8dabf91278a09655beeed0b6e
-#https://gist.github.com/Epineph/bab75f5f64df250fe053ab0e918b3214
 sudo pacman -S python-setuptools python-requests python-beautifulsoup4 base-devel --needed
 # This script changes pacman.conf so that the repos align with the date of
 # the latest zfs release. Just change the variable pacman_conf="/path/to/your/pacman.conf".
