@@ -1,4 +1,8 @@
 #!/bin/bash
+
+user_dir="/home/$USER"
+build_dir="$user_dir/builtPackages"
+
 check_and_install_packages() {
   local missing_packages=()
 
@@ -33,20 +37,7 @@ check_and_install_packages() {
 
 
 (
-# Get the current language setting
-current_lang=$(locale | grep "^LANG=" | cut -d= -f2)
 
-# If the LANG variable is not set, default to 'C'
-if [ -z "$current_lang" ]; then
-    current_lang="C"
-fi
-
-# Export the LC_ALL and LANGUAGE
-export LC_ALL="C"
-export LANGUAGE="$current_lang"
-
-# Verify settings
-echo "Locale settings: LC_ALL=$LC_ALL, LANGUAGE=$LANGUAGE"
 
 check_and_AUR() {
   local package="$1"
@@ -62,8 +53,8 @@ check_and_AUR() {
     read -p "Do you want to install yay? (Y/n) " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
-      echo "Installing yay into ~/AUR-helpers..."
-      mkdir -p ~/AUR-helpers && git -C ~/AUR-helpers clone https://aur.archlinux.org/yay.git && (cd ~/AUR-helpers/yay && makepkg -si)
+      echo "Installing yay into $user_dir/AUR-helpers..."
+      mkdir -p $user_dir/AUR-helpers && git -C $user_dir/AUR-helpers clone https://aur.archlinux.org/yay.git && (cd $user_dir/AUR-helpers/yay && makepkg -si)
       cd -  # Return to the previous directory
       if [ $? -ne 0 ]; then
         echo "Failed to install yay. Aborting."
@@ -78,14 +69,11 @@ check_and_AUR() {
   fi
 }
 
-check_and_install_packages archiso git python-setuptools curl python-requests python-beautifulsoup4 base-devel pacman-contrib sof-firmware
+check_and_install_packages archiso git python-setuptools curl python-requests python-beautifulsoup4 base-devel pacman-contrib
 
 check_and_AUR
 
 clone() {
-    # Define the build directory
-    build_dir=~/builtPackages
-
     # Ensure the build directory exists
     mkdir -p "$build_dir"
 
@@ -119,52 +107,35 @@ clone() {
     fi
 }
 
-read -p "Do you want to burn the ISO to USB right afterwards? (yes/no): " confirmation
-
-list_devices() {
-    echo "Available devices:"
-    lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
-}
-
-if [ "$confirmation" == "yes" ]; then
-        list_devices
-        read -p "Enter the device name (e.g., /dev/sda, /dev/nvme0n1): " device
-fi
 
 
-(clone https://aur.archlinux.org/zfs-dkms.git build && clone https://aur.archlinux.org/zfs-utils.git build)
+(clone https://aur.archlinux.org/ms-sys.git build && clone https://aur.archlinux.org/zfs-dkms.git build && clone https://aur.archlinux.org/zfs-utils.git build)
 
-mkdir -p ~/ISOBUILD
+mkdir -p $user_dir/ISOBUILD
 
-cp -r /usr/share/archiso/configs/releng ~/ISOBUILD/
+cp -r /usr/share/archiso/configs/releng $user_dir/ISOBUILD/
 
 sleep 1
 
-cd ~/ISOBUILD
+cd $user_dir/ISOBUILD
 
 mv releng/ zfsiso
 
 cd zfsiso
 
+iso_home="$user_dir/ISOBUILD/zfsiso"
 
-mkdir -p ~/ISOBUILD/zfsiso/airootfs/etc/systemd/scripts
+sleep 1
 
-sudo touch ~/ISOBUILD/zfsiso/airootfs/etc/systemd/system/pacman-archzfs-init.service
-
-echo -e "\n[Unit]\nDescription=Adds archzfs to pacman keyring\nRequires=pacman-init.service\nAfter=pacman-init.service\n\n[Service]\nType=oneshot\nRemainAfterExit=yes\nExecStart=/usr/bin/pacman-key --add /etc/systemd/scripts/archzfs.asc\nExecStart=/usr/bin/pacman-key --lsign-key DDF7DB817396A49B2A2723F7403BD972F75D9D76\n\n[Install]\nWantedBy=multi-user.target\n" >> ~/ISOBUILD/zfsiso/airootfs/etc/systemd/system/pacman-archzfs-init.service
-
-echo 'systemctl enable pacman-archzfs-init.service' | sudo tee -a airootfs/root/customize_airootfs.sh
-
-
-sudo curl -L -o ~/ISOBUILD/zfsiso/airootfs/etc/systemd/scripts/archzfs.asc https://archzfs.com/archzfs.gpg
-
-mkdir zfsrepo
+mkdir -p $iso_home/zfsrepo
 
 cd zfsrepo
 
-cp ~/builtPackages/zfs-dkms/*.zst .
+cp $build_dir/zfs-dkms/*.zst .
 sleep 2
-cp ~/builtPackages/zfs-utils/*.zst .
+cp $build_dir/zfs-utils/*.zst .
+sleep 2
+cp $build_dir/ms-sys/*.zst .
 
 sleep 2
 
@@ -173,20 +144,21 @@ repo-add zfsrepo.db.tar.gz *.zst
 sleep 1
 
 
-sed -i "/\ParallelDownloads = 5/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
+sed -i "/\ParallelDownloads = 5/"'s/^#//' $iso_home/pacman.conf
 
-sed -i "/\[multilib\]/,/Include/"'s/^#//' ~/ISOBUILD/zfsiso/pacman.conf
+sed -i "/\[multilib\]/,/Include/"'s/^#//' $iso_home/pacman.conf
 
-echo -e "\n\n#Custom Packages\nlinux-headers\nzfs-dkms\nzfs-utils" | sudo tee -a ~/ISOBUILD/zfsiso/packages.x86_64
+echo -e "\n\n#Custom Packages\nlinux-headers\nzfs-dkms\nzfs-utils" | sudo tee -a $iso_home/packages.x86_64
+
 
 # Define the URL
 #
-sudo chmod u+rwx ~/ISOBUILD/zfsiso/pacman.conf
+sudo chmod u+rwx $iso_home/pacman.conf
 
 url="https://archzfs.com/archzfs/x86_64/"
 
 # Define the path to the pacman.conf file
-pacman_conf="/home/$USER/ISOBUILD/zfsiso/pacman.conf"
+pacman_conf="$iso_home/pacman.conf"
 
 # Export the URL so that it can be accessed as an environment variable in Python
 export url
@@ -198,26 +170,19 @@ import requests
 from bs4 import BeautifulSoup
 import re
 from datetime import datetime
-
 # Access the URL from the environment variable
 url = os.getenv('url')
-
 # Fetch the HTML content from the URL
 response = requests.get(url)
-
 if response.status_code != 200:
     print(f"Failed to retrieve the page, status code: {response.status_code}", file=sys.stderr)
     sys.exit(1)
-
 # Parse the HTML content using BeautifulSoup
 soup = BeautifulSoup(response.text, 'html.parser')
-
 # Define the regular expression pattern for the files we're looking for
 file_pattern = re.compile(r'zfs-linux-\d+.*\.zst')
-
 # Initialize an empty list to store the dates
 dates = []
-
 # Search for the files matching the pattern
 for a_tag in soup.find_all('a', href=True):
     if file_pattern.search(a_tag['href']):
@@ -226,10 +191,8 @@ for a_tag in soup.find_all('a', href=True):
             parts = sibling_text.strip().split()
             date = ' '.join(parts[:2])
             dates.append((a_tag['href'], date))
-
 # Sort the dates
 dates.sort(key=lambda x: x[1], reverse=True)
-
 # Format the most recent date
 if dates:
     filename, most_recent_date = dates[0]
@@ -253,7 +216,7 @@ fi
 
 
 if ! grep -q "\[community\]" "$pacman_conf"; then
-    echo -e "\n[community]\nServer = https://archzfs.com/\$repo/\$arch\nSigLevel = Optional TrustAll" >> $pacman_conf
+        sed -i "/^\[$repo\]/,/Include/ s|Include = .*|Server = https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch\nSigLevel = PackageRequired|" $pacman_conf
 fi
 
 # Add the [archzfs] repository configuration if it doesn't exist
@@ -262,57 +225,74 @@ if ! grep -q "\[archzfs\]" "$pacman_conf"; then
 fi
 
 # Make the changes for [core], [extra], [multilib] and [community]
-for repo in core extra community; do
+for repo in core extra multilib community; do
     sed -i "/^\[$repo\]/,/Include/ s|Include = .*|Server = https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch\nSigLevel = PackageRequired|" $pacman_conf
 done
 
 
-# Define the path to your pacman.conf file
-pacman_conf="~/ISOBUILD/zfsiso/pacman.conf"
-
-# Define the new XferCommand
-new_xfer_command="XferCommand = /usr/bin/curl -L -C - --max-time 300 --retry 3 --retry-delay 3 '%u' > '%o'"
-
-# Check if XferCommand (commented or uncommented) exists in the file
-if grep -q "^#XferCommand\|^XferCommand" "$pacman_conf"; then
-    # Modify the existing XferCommand line, whether it's commented or not
-    sed -i "/^#XferCommand\|^XferCommand/c\\$new_xfer_command" "$pacman_conf"
-else
-    # If XferCommand does not exist at all, add it
-    echo "$new_xfer_command" >> "$pacman_conf"
-fi
-
 
 
 sudo cp /etc/pacman.conf /etc/pacman.conf.backup
-sudo cp ~/ISOBUILD/zfsiso/pacman.conf /etc/pacman.conf
 
-sudo cp ~/ISOBUILD/zfsiso/pacman.conf ~/ISOBUILD/zfsiso/airootfs/etc/pacman.conf
+sudo cp $iso_home/pacman.conf /etc/pacman.conf
 
-echo -e "\n[zfsrepo]\nSigLevel = Optional TrustAll\nServer = file:///home/$USER/ISOBUILD/zfsiso/zfsrepo" >> ~/ISOBUILD/zfsiso/pacman.conf
 
-cd ~/ISOBUILD/zfsiso
+sudo cp $iso_home/airootfs/etc/pacman.conf $iso_home/airootfs/etc/pacman.conf.backup
+sudo cp $iso_home/pacman.conf $iso_home/airootfs/etc/pacman.conf
+
+echo -e "\n[zfsrepo]\nSigLevel = Optional TrustAll\nServer = file:///home/$USER/ISOBUILD/zfsiso/zfsrepo" >> $iso_home/pacman.conf
+
+cd $iso_home
 
 
 
 mkdir {WORK,ISOOUT}
 
 
-(cd ~/ISOBUILD/zfsiso && sudo mkarchiso -v -w WORK -o ISOOUT .)
+(cd $iso_home && sudo mkarchiso -v -w WORK -o ISOOUT .)
 
 sudo cp /etc/pacman.conf /etc/pacman.conf.modified
 sudo mv /etc/pacman.conf.backup /etc/pacman.conf
 
-burnISO_to_USB() {
-    echo "Burning ISO to USB flash drive $1..."
-    dd bs=4M if=~/ISOBUILD/zfsiso/ISOOUT/archlinux-*.iso of="$1" status=progress oflag=sync
+
+
+list_devices() {
+    echo "Available devices:"
+    lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
 }
 
-if [ -b "$device" ]; then
-        burnISO_to_USB "$device"
-        echo "ISO burned to $device."
-else
-        echo "Invalid device name."
-fi
 
+
+locate_customISO_file() {
+  local isoLocation="$iso_home/ISOOUT/"
+  local isoFiles="$isoLocation/archlinux-*.iso"
+
+  for f in $isoFiles; do
+    if [ -f "$f" ]; then
+      list_devices
+      read -p "Enter the device name (e.g., /dev/sda, /dev/nvme0n1): " device
+
+      if [ -b "$device" ]; then
+        burnISO_to_USB "$f" "$device"  # Burn the ISO to USB
+      else
+        echo "Invalid device name."
+      fi
+    fi
+  done
+}
+
+
+burnISO_to_USB() {
+        sudo dd bs=4M if=$1 of=$2 conv=fsync oflag=direct status=progress
+}
+
+
+read -p "Do you want to burn the ISO to USB right now? (yes/no): " confirmation
+if [ "$confirmation" == "yes" ]; then
+  locate_customISO_file
+else
+  echo "Exiting."
+  sleep 2
+  exit
+fi
 )
