@@ -106,5 +106,52 @@ clone() {
     fi
 }
 
+#!/bin/bash
 
+# Function to create a partition using fdisk
+create_partition() {
+    local device=$1
+    local type=$2
+    local start=$3
+    local end=$4
+
+    echo "Creating ${type} partition from ${start} to ${end}..."
+
+    # Command sequence to create a partition
+    (
+    echo n # new partition
+    echo   # default partition number
+    echo   # default - start at beginning of disk 
+    echo +${end} # end at specified size
+    echo t # change partition type
+    echo 20 # assuming 20 is the type code for the specified type
+    echo w # write changes
+    ) | fdisk ${device}
+
+    echo "${type} partition created successfully."
+}
+
+# Example usage
+device="/dev/sdx" # replace with the actual device
+create_partition $device "ext4" "1G" "20G"
+
+
+confirm_and_format_partition() {
+    local partition=$1
+    local filesystem_type=$2
+
+    read -p "Warning: Formatting /dev/$partition will erase all data on it. Are you sure you want to continue? (y/n) " confirm
+    confirm=${confirm,,} # Convert to lowercase
+
+    if [[ $confirm == "y" ]]; then
+        format_partition $partition $filesystem_type
+    else
+        echo "Formatting cancelled."
+    fi
+}
+
+# Example usage
+if [[ $format_efi == "y" ]]; then
+    confirm_and_format_partition $efi_partition "vfat"
+fi
 
