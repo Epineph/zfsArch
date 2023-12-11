@@ -256,6 +256,10 @@ sudo mv /etc/pacman.conf.backup /etc/pacman.conf
 
 
 
+user_dir="/home/$USER"
+pyUrl="https://raw.githubusercontent.com/Epineph/zfsArch/main/test.py"
+
+(
 list_devices() {
     echo "Available devices:"
     lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
@@ -279,6 +283,37 @@ locate_customISO_file() {
       fi
     fi
   done
+}
+
+
+burnISO_to_USB() {
+    # Install ddrescue if not installed
+    if ! type ddrescue &>/dev/null; then
+        echo "ddrescue not found. Installing it now."
+        sudo pacman -S ddrescue
+    fi
+
+    # Burn the ISO to USB with ddrescue
+    echo "Burning ISO to USB with ddrescue. Please wait..."
+    sudo ddrescue -d -D --force "$1" "$2" /tmp/ddrescue.log
+}
+
+
+read -p "Do you want to burn the ISO to USB right now? (yes/no): " confirmation
+if [ "$confirmation" == "yes" ]; then
+  read -p "do you want to choose the sizes of the partitions? (yes/no): " USER_PARTITION_CONFIRMATION
+    if [ "$USER_PARTITION_CONFIRMATION" == "yes" ]; then
+    list_devices
+      (cd $user_dir && curl -L $pyUrl > py_script.py
+      sudo chmod +rwx py_script.py && sudo python3 ./py_script.py test)
+    else
+      locate_customISO_file
+    fi
+else
+  echo "Exiting."
+  sleep 2
+  exit
+fi
 }
 
 
