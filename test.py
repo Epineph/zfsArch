@@ -2,9 +2,13 @@
 import os
 import subprocess
 import sys
+import glob
 
+iso_dir = os.getenv('HOME')
+# absolute path to search all text files inside a specific folder
+path = r'iso_dir/ISOBUILD/zfsiso/ISOOUT/*.iso'
+print(glob.glob(path))
 
-ISO_DIR = os.getenv('HOME')
 
 def run_command(command):
     """Run a shell command and return its output"""
@@ -14,12 +18,9 @@ def run_command(command):
     except subprocess.CalledProcessError as e:
         return e.output.decode()
 
-for file in glob.glob('ISO_DIR/ISOBUILD/zfsiso/ISOOUT*.iso'):
-    print file
-
 def create_bootable_usb():
     if len(sys.argv) > 1:
-      iso_path = sys.argv[1]
+      iso_path = glob.glob(path)
     else:
         iso_path = input("Enter the path to the ISO file: ")
     print("Hello, World!")
