@@ -23,10 +23,9 @@ def run_command(command):
         return e.output.decode()
 
 def create_bootable_usb():
-     
-     if len(sys.argv) > 1:
-         the_dir = path
-         iso_path = filter(lambda x: x.endswith('.iso'), os.listdir(the_dir))
+    if len(sys.argv) > 1:
+        the_dir = path
+        iso_path = filter(lambda x: x.endswith('.iso'), os.listdir(the_dir))
     else:
         iso_path = input("Enter the path to the ISO file: ")
     print("Hello, World!")
