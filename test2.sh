@@ -283,7 +283,15 @@ locate_customISO_file() {
 
 
 burnISO_to_USB() {
-        sudo dd bs=4M if=$1 of=$2 conv=fsync oflag=direct status=progress
+    # Install ddrescue if not installed
+    if ! type ddrescue &>/dev/null; then
+        echo "ddrescue not found. Installing it now."
+        sudo pacman -S ddrescue
+    fi
+
+    # Burn the ISO to USB with ddrescue
+    echo "Burning ISO to USB with ddrescue. Please wait..."
+    sudo ddrescue -d -D --force "$1" "$2" /tmp/ddrescue.log
 }
 
 
