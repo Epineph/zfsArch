@@ -6,7 +6,7 @@ import glob
 
 iso_dir = os.getenv('HOME')
 # absolute path to search all text files inside a specific folder
-path = iso_dir/ISOBUILD/zfsiso/ISOOUT/*.iso'
+path = 'iso_dir/ISOBUILD/zfsiso/ISOOUT/*.iso'
 print(glob.glob(path))
 
 
