@@ -314,28 +314,6 @@ else
   sleep 2
   exit
 fi
-}
 
 
-burnISO_to_USB() {
-    # Install ddrescue if not installed
-    if ! type ddrescue &>/dev/null; then
-        echo "ddrescue not found. Installing it now."
-        sudo pacman -S ddrescue
-    fi
-
-    # Burn the ISO to USB with ddrescue
-    echo "Burning ISO to USB with ddrescue. Please wait..."
-    sudo ddrescue -d -D --force "$1" "$2" /tmp/ddrescue.log
-}
-
-
-read -p "Do you want to burn the ISO to USB right now? (yes/no): " confirmation
-if [ "$confirmation" == "yes" ]; then
-  locate_customISO_file
-else
-  echo "Exiting."
-  sleep 2
-  exit
-fi
 )
