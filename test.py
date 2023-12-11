@@ -13,10 +13,7 @@ def run_command(command):
         return e.output.decode()
 
 def create_bootable_usb():
-    if int(sys.argv[0]):
-        iso_path = sys.argv[0].strip()
-    else:
-        iso_path = input("Enter the path to the ISO file: ").strip()
+    iso_path = input("Enter the path to the ISO file: ").strip()
     usb_device = input("Enter the USB device path (e.g., /dev/sdx): ").strip()
     partition1_size = input("Enter the size (in MB) for the first partition: ").strip()
     partition2_size = input("Enter the size (in MB) for the second partition (optional, press Enter to skip): ").strip()
