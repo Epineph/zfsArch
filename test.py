@@ -2,16 +2,6 @@
 import os
 import subprocess
 import sys
-import glob
-
-iso_dir = os.getenv('HOME')
-# absolute path to search all text files inside a specific folder
-
- 
-# Join various path components 
-path = '/ISOBUILD/zfsiso/ISOOUT/'
-path = os.path.join(path, iso_dir)
-print(path)
 
 
 def run_command(command):
@@ -23,13 +13,7 @@ def run_command(command):
         return e.output.decode()
 
 def create_bootable_usb():
-    if len(sys.argv) > 1:
-    the_dir = path
-        iso_path = filter(lambda x: x.endswith('.iso'), os.listdir(the_dir))
-    else:
-        iso_path = input("Enter the path to the ISO file: ")
-    print("Hello, World!")
-    # Get user input
+    iso_path = input("Enter the path to the ISO file: ").strip()
     usb_device = input("Enter the USB device path (e.g., /dev/sdx): ").strip()
     partition1_size = input("Enter the size (in MB) for the first partition: ").strip()
     partition2_size = input("Enter the size (in MB) for the second partition (optional, press Enter to skip): ").strip()
