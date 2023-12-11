@@ -304,8 +304,9 @@ if [ "$confirmation" == "yes" ]; then
   read -p "do you want to choose the sizes of the partitions? (yes/no): " USER_PARTITION_CONFIRMATION
     if [ "$USER_PARTITION_CONFIRMATION" == "yes" ]; then
     list_devices
+    echo "iso path is (remember to include filename):" && ls -l $iso_home/ISOOUT
       (cd $user_dir && curl -L $pyUrl > py_script.py
-      sudo chmod +rwx py_script.py && sudo python3 ./py_script.py test)
+      sudo chmod +rwx py_script.py && sudo python3 ./py_script.py)
     else
       locate_customISO_file
     fi
