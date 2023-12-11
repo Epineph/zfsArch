@@ -6,8 +6,12 @@ import glob
 
 iso_dir = os.getenv('HOME')
 # absolute path to search all text files inside a specific folder
-path = 'iso_dir/ISOBUILD/zfsiso/ISOOUT/*.iso'
-print(glob.glob(path))
+
+ 
+# Join various path components 
+path = '/ISOBUILD/zfsiso/ISOOUT/'
+path = os.path.join(path, iso_dir)
+print(path)
 
 
 def run_command(command):
@@ -20,7 +24,7 @@ def run_command(command):
 
 def create_bootable_usb():
     if len(sys.argv) > 1:
-      iso_path = glob.glob(path).strip()
+        iso_path = [f for f in os.listdir(path) if f.endswith('.iso')].strip()
     else:
         iso_path = input("Enter the path to the ISO file: ")
     print("Hello, World!")
