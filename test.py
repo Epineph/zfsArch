@@ -14,7 +14,7 @@ def run_command(command):
 def create_bootable_usb():
     # Get user input
     if sys.argv[1]:
-        iso_path = sys.argv[0]
+        iso_path = sys.argv[0].strip()
     else:
         iso_path = input("Enter the path to the ISO file: ")
     usb_device = input("Enter the USB device path (e.g., /dev/sdx): ").strip()
