@@ -20,7 +20,7 @@ def run_command(command):
 
 def create_bootable_usb():
     if len(sys.argv) > 1:
-      iso_path = glob.glob(path)
+      iso_path = glob.glob(path).strip()
     else:
         iso_path = input("Enter the path to the ISO file: ")
     print("Hello, World!")
