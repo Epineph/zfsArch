@@ -259,7 +259,7 @@ sudo mv /etc/pacman.conf.backup /etc/pacman.conf
 user_dir="/home/$USER"
 pyUrl="https://raw.githubusercontent.com/Epineph/zfsArch/main/test.py"
 
-(
+
 list_devices() {
     echo "Available devices:"
     lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
