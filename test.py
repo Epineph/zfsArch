@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
+import os
 import subprocess
+import sys
+
+
+ISO_DIR = os.getenv('HOME')
 
 def run_command(command):
     """Run a shell command and return its output"""
@@ -9,9 +14,16 @@ def run_command(command):
     except subprocess.CalledProcessError as e:
         return e.output.decode()
 
+for file in glob.glob('ISO_DIR/ISOBUILD/zfsiso/ISOOUT*.iso'):
+    print file
+
 def create_bootable_usb():
+    if len(sys.argv) > 1:
+      iso_path = sys.argv[1]
+    else:
+        iso_path = input("Enter the path to the ISO file: ")
+    print("Hello, World!")
     # Get user input
-    iso_path = input("Enter the path to the ISO file: ")
     usb_device = input("Enter the USB device path (e.g., /dev/sdx): ").strip()
     partition1_size = input("Enter the size (in MB) for the first partition: ").strip()
     partition2_size = input("Enter the size (in MB) for the second partition (optional, press Enter to skip): ").strip()
