@@ -3,6 +3,7 @@ import subprocess
 import sys
 import os
 iso_dir = os.getenv('full_iso_path')
+iso_dir = str(iso_dir)
 def run_command(command):
     """Run a shell command and return its output"""
     try:
