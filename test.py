@@ -2,7 +2,7 @@
 import subprocess
 import sys
 import os
-
+iso_dir = os.getenv('full_iso_path')
 def run_command(command):
     """Run a shell command and return its output"""
     try:
@@ -14,7 +14,7 @@ def run_command(command):
 def create_bootable_usb():
     # Get user input
     if sys.argv[1]:
-        iso_path = sys.argv[0].strip()
+        iso_path = iso_dir.strip()
     else:
         iso_path = input("Enter the path to the ISO file: ")
     usb_device = input("Enter the USB device path (e.g., /dev/sdx): ").strip()
