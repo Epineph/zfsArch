@@ -1,36 +1,50 @@
 #!/bin/bash
-
-user_dir="/home/$USER"
-build_dir="$user_dir/builtPackages"
-
-check_and_install_packages() {
-  local missing_packages=()
-
-  # Check which packages are not installed
-  for package in "$@"; do
-    if ! pacman -Qi "$package" &> /dev/null; then
-      missing_packages+=("$package")
-    else
-      echo "Package '$package' is already installed."
-    fi
-  done
-
-  # If there are missing packages, ask the user if they want to install them
-  if [ ${#missing_packages[@]} -ne 0 ]; then
-    echo "The following packages are not installed: ${missing_packages[*]}"
-    read -p "Do you want to install them? (Y/n) " -n 1 -r
-    echo    # Move to a new line
-    if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
-      for package in "${missing_packages[@]}"; do
-        yes | sudo pacman -S "$package"
-        if [ $? -ne 0 ]; then
-          echo "Failed to install $package. Aborting."
-          exit 1
-        fi
-      done
-    else
-      echo "The following packages are required to continue: ${missing_packages[*]}. Aborting."
-      exit 1
+                          Vartiables
+####################################################################\
+user_dir="/home/$USER"                                              \
+build_dir="$user_dir/builtPackages"                                 \
+iso_home="$user_dir/ISOBUILD/zfsiso"                                \
+user_dir="/home/$USER"                                              \
+pyUrl="https://raw.githubusercontent.com/Epineph/zfsArch/main/      \
+test.py"                                                            \
+isoLocation="$iso_home/ISOOUT"                                      \
+isoFiles="$isoLocation/archlinux-*.iso"                             \
+####################################################################\
+                      Missing Package Check                         \
+                      Installs any missing                          \
+                                                                    \
+check_and_install_packages() {                                      \
+  local missing_packages=()                                         \
+                                                                    \
+  # Check which packages are not installed                          \
+  for package in "$@"; do                                           \
+    if ! pacman -Qi "$package" &> /dev/null; then                   \
+                                                                    \
+      missing_packages+=("$package")                                \
+    else                                                            \
+      echo "Package '$package' is already installed."               \
+    fi                                                              \
+  done                                                              \
+                                                                    \
+  # If there are missing packages, ask the user if they want to     \ 
+  # install them                                                    \
+  if [ ${#missing_packages[@]} -ne 0 ]; then                        \
+    echo "The following packages are not installed:                 \
+    ${missing_packages[*]}"                                         \
+    read -p "Do you want to install them? (Y/n) " -n 1 -r           \
+    echo    # Move to a new line                                    \
+    if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then              \
+      for package in "${missing_packages[@]}"; do                   \
+        yes | sudo pacman -S "$package"                             \
+        if [ $? -ne 0 ]; then                                       \
+          echo "Failed to install $package. Aborting."              \
+          exit 1                                                    \
+        fi                                                          \
+      done                                                          \
+    else                                                            \
+      echo "The following packages are required to continue:        \
+      ${missing_packages[*]}. Aborting."                            \
+      exit 1                                                        \
     fi
   fi
 }
@@ -256,10 +270,6 @@ sudo mv /etc/pacman.conf.backup /etc/pacman.conf
 
 
 
-user_dir="/home/$USER"
-pyUrl="https://raw.githubusercontent.com/Epineph/zfsArch/main/test.py"
-
-
 list_devices() {
     echo "Available devices:"
     lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
@@ -273,6 +283,7 @@ locate_customISO_file() {
 
   for f in $isoFiles; do
     if [ -f "$f" ]; then
+      echo "$f"
       list_devices
       read -p "Enter the device name (e.g., /dev/sda, /dev/nvme0n1): " device
 
@@ -303,10 +314,15 @@ read -p "Do you want to burn the ISO to USB right now? (yes/no): " confirmation
 if [ "$confirmation" == "yes" ]; then
   read -p "do you want to choose the sizes of the partitions? (yes/no): " USER_PARTITION_CONFIRMATION
     if [ "$USER_PARTITION_CONFIRMATION" == "yes" ]; then
-    list_devices
-    echo "iso path is (remember to include filename):" && ls -l $iso_home/ISOOUT
-      (cd $user_dir && curl -L $pyUrl > py_script.py
+      list_devices
+      cd $isoLocation
+      echo -e "\n-----\nthe location of the iso is:"
+      echo "$isoLocation/$(ls)"
+      echo -e "You can copy this path\n-----"
+      full_iso_path="$isoLocation/$(ls)"
+      (curl -L $pyUrl > py_script.py
       sudo chmod +rwx py_script.py && sudo python3 ./py_script.py)
+      sudo rm py_script.py && sudo umount /mnt
     else
       locate_customISO_file
     fi
@@ -315,6 +331,4 @@ else
   sleep 2
   exit
 fi
-
-
 )
