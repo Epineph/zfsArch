@@ -141,7 +141,7 @@ clone() {
 # will use and include in the resulting image.
 #########################################################
 
-(clone && https://aur.archlinux.org/zfs-dkms.git build)
+(clone https://aur.archlinux.org/zfs-dkms.git build)
 (clone https://aur.archlinux.org/zfs-utils.git build)
 
 mkdir -p $USER_DIR/ISOBUILD
