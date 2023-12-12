@@ -1,3 +1,4 @@
+#!/bin/bash
 #########################################################################
 # Global variables which are used throughout the script                 #
 # If you decide to change them, remember to change them                 #
