@@ -340,7 +340,7 @@ burnISO_to_USB() {
 
     # Burn the ISO to USB with ddrescue
     echo "Burning ISO to USB with ddrescue. Please wait..."
-    sudo ddrescue -d -D --force "$1" "$2" /tmp/ddrescue.log
+    sudo ddrescue -d -D --force "$1" "$2" 
 }
 
 
