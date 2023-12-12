@@ -1,54 +1,48 @@
 #!/bin/bash
 
-USER_DIR="/home/$USER"
-BUILD_DIR="$USER_DIR/builtPackages"
-PY_GH_SCRIPT="$GIT_NAME/$REPO_NAME"
-GIT_NAME="Epinephrine"
-GIT_REPO="zfsArch"
-ISOBUILD_DIR="$USER_DIR/ISOBUILD"
-ISO_HOME="$ISOBUILD_DIR/zfsiso"
-ISO_LOCATION="$ISO_HOME/ISOOUT/"
-ISO_REPO_DIR="$ISO_HOME/zfsrepo"
-ISO_FILES="$ISO_LOCATION/archlinux-*.iso"
-AUR_URL="https://aur.archlinux.org"                          #
-YAY_PATH="$USER_DIR/AUR-helpers/yay"
-RELENG_DIR="/usr/share/archiso/configs/releng"
-USB_HOME="$ISO_HOME/airootfs"
-PY_URL="https://raw.githubusercontent.com/Epineph/zfsArch/main/test.py"
+# GLOBAL VARIABLES
+#################################################################################
+USER_DIR="/home/$USER"								#
+BUILD_DIR="$USER_DIR/builtPackages"						#
+PY_URL="https://raw.githubusercontent.com/Epineph/zfsArch/main/test.py"		#
+ISO_HOME="$USER_DIR/ISOBUILD/zfsiso"						#
+ISO_LOCATION="$ISO_HOME/ISOOUT/"						#
+ISO_FILES="$ISO_LOCATION/archlinux-*.iso"					#
+AUR_HELPER_DIR="$AUR_HELPER_DIR"						#
+ZFS_REPO_DIR="$ISO_HOME/zfsrepo"						#
+GITHUB_REPOSITORY="$git_author/$repo_name"					#
+AUR_URL="https://aur.archlinux.org"						#
+#################################################################################
 
-                                                                    
-check_and_install_packages() {                                      
-  local missing_packages=()                                         
-                                                                    
-  # Check which packages are not installed                          
-  for package in "$@"; do                                           
-    if ! pacman -Qi "$package" &> /dev/null; then                   
-                                                                    
-      missing_packages+=("$package")                                
-    else                                                            
-      echo "Package '$package' is already installed."               
-    fi                                                              
-  done                                                              
-                                                                    
-  # If there are missing packages, ask the user if they want to     ' 
-  # install them                                                    
-  if [ ${#missing_packages[@]} -ne 0 ]; then                        
-    echo "The following packages are not installed:                 
-    ${missing_packages[*]}"                                         
-    read -p "Do you want to install them? (Y/n) " -n 1 -r           
-    echo    # Move to a new line                                    
-    if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then              
-      for package in "${missing_packages[@]}"; do                   
-        yes | sudo pacman -S "$package"                             
-        if [ $? -ne 0 ]; then                                       
-          echo "Failed to install $package. Aborting."              
-          exit 1                                                    
-        fi                                                          
-      done                                                          
-    else                                                            
-      echo "The following packages are required to continue:        
-      ${missing_packages[*]}. Aborting."                            
-      exit 1                                                        
+
+check_and_install_packages() {
+  local missing_packages=()
+
+  # Check which packages are not installed
+  for package in "$@"; do
+    if ! pacman -Qi "$package" &> /dev/null; then
+      missing_packages+=("$package")
+    else
+      echo "Package '$package' is already installed."
+    fi
+  done
+
+  # If there are missing packages, ask the user if they want to install them
+  if [ ${#missing_packages[@]} -ne 0 ]; then
+    echo "The following packages are not installed: ${missing_packages[*]}"
+    read -p "Do you want to install them? (Y/n) " -n 1 -r
+    echo    # Move to a new line
+    if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+      for package in "${missing_packages[@]}"; do
+        yes | sudo pacman -S "$package"
+        if [ $? -ne 0 ]; then
+          echo "Failed to install $package. Aborting."
+          exit 1
+        fi
+      done
+    else
+      echo "The following packages are required to continue: ${missing_packages[*]}. Aborting."
+      exit 1
     fi
   fi
 }
@@ -71,9 +65,8 @@ check_and_AUR() {
     read -p "Do you want to install yay? (Y/n) " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
-      echo "Installing yay into $YAY_PATH..."
-      mkdir -p $YAY_PATH && git -C $YAY_PATH clone $AUR_URL/yay.git && \
-      (cd $YAY_PATH && makepkg -si)
+      echo "Installing yay into $USER_DIR/AUR-helpers..."
+      mkdir -p $USER_DIR/AUR-helpers && git -C $USER_DIR/AUR-helpers clone https://aur.archlinux.org/yay.git && (cd $USER_DIR/AUR-helpers/yay && makepkg -si)
       cd -  # Return to the previous directory
       if [ $? -ne 0 ]; then
         echo "Failed to install yay. Aborting."
@@ -88,8 +81,7 @@ check_and_AUR() {
   fi
 }
 
-check_and_install_packages archiso git python-setuptools curl 
-python-requests python-beautifulsoup4 base-devel pacman-contrib
+check_and_install_packages archiso git python-setuptools curl python-requests python-beautifulsoup4 base-devel pacman-contrib gcc-libs ncurses util-linux-libs popt git
 
 check_and_AUR
 
@@ -129,27 +121,25 @@ clone() {
 
 
 
-(clone $AUR_URL/ms-sys.git build && \
-clone $AUR_URL/zfs-dkms.git build && \
-clone $AUR_URL/zfs-utils.git build)
+(clone https://aur.archlinux.org/ms-sys.git build clone https://aur.archlinux.org/zfs-dkms.git build && clone https://aur.archlinux.org/zfs-utils.git build)
 
-mkdir -p $ISOBUILD_DIR
+mkdir -p $USER_DIR/ISOBUILD
 
-cp -r /usr/share/archiso/configs/releng $ISOBUILD_DIR/
+cp -r /usr/share/archiso/configs/releng $USER_DIR/ISOBUILD/
 
 sleep 1
 
-cd $ISO_BUILD_DIR
+cd $USER_DIR/ISOBUILD
 
 mv releng/ zfsiso
 
-cd zfsiso
+cd $ISO_HOME
 
 sleep 1
 
-mkdir -p $ISO_REPO_DIR
+mkdir -p $ZFS_REPO_DIR
 
-cd zfsrepo
+cd $ZFS_REPO_DIR
 
 cp $BUILD_DIR/zfs-dkms/*.zst .
 sleep 2
@@ -164,12 +154,11 @@ repo-add zfsrepo.db.tar.gz *.zst
 sleep 1
 
 
-sed -i "/#ParallelDownloads = 5/"'s/^#//' $ISO_HOME/pacman.conf
+sed -i "/\ParallelDownloads = 5/"'s/^#//' $ISO_HOME/pacman.conf
 
-sed -i "/#[multilib#]/,/Include/"'s/^#//' $ISO_HOME/pacman.conf
+sed -i "/\[multilib\]/,/Include/"'s/^#//' $ISO_HOME/pacman.conf
 
-echo -e "#n#n#Custom Packages#nlinux-headers#nzfs-dkms#nzfs-utils"\
- | sudo tee -a $ISO_HOME/packages.x86_64
+echo -e "\n\n#Custom Packages\nlinux-headers\nzfs-dkms\nzfs-utils" | sudo tee -a $ISO_HOME/packages.x86_64
 
 
 # Define the URL
@@ -201,7 +190,7 @@ if response.status_code != 200:
 # Parse the HTML content using BeautifulSoup
 soup = BeautifulSoup(response.text, 'html.parser')
 # Define the regular expression pattern for the files we're looking for
-file_pattern = re.compile(r'zfs-linux-#d+.*#.zst')
+file_pattern = re.compile(r'zfs-linux-\d+.*\.zst')
 # Initialize an empty list to store the dates
 dates = []
 # Search for the files matching the pattern
@@ -235,24 +224,20 @@ else
     exit 1
 fi
 
+cd $ISO_HOME
 
-if ! grep -q "#[community#]" "$pacman_conf"; then
-        sed -i "/^#[$repo#]/,/Include/ s|Include = .*|Server = \
-        https://archive.archlinux.org/repos/${formatted_date}/#$repo/os/\
-        #$arch#nSigLevel = PackageRequired|" $pacman_conf
+if ! grep -q "\[community\]" "$pacman_conf"; then
+        sed -i "/^\[$repo\]/,/Include/ s|Include = .*|Server = https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch\nSigLevel = PackageRequired|" $pacman_conf
 fi
 
 # Add the [archzfs] repository configuration if it doesn't exist
-if ! grep -q "#[archzfs#]" "$pacman_conf"; then
-    echo -e "#n[archzfs]#nServer = https://archzfs.com/#$repo/#$arch#n\
-    SigLevel = Optional TrustAll" >> $pacman_conf
+if ! grep -q "\[archzfs\]" "$pacman_conf"; then
+    echo -e "\n[archzfs]\nServer = https://archzfs.com/\$repo/\$arch\nSigLevel = Optional TrustAll" >> $pacman_conf
 fi
 
 # Make the changes for [core], [extra], [multilib] and [community]
 for repo in core extra multilib community; do
-    sed -i "/^#[$repo#]/,/Include/ s|Include = .*|Server = \
-    https://archive.archlinux.org/repos/${formatted_date}/#$repo/os/#\
-    $arch#nSigLevel = PackageRequired|" $pacman_conf
+    sed -i "/^\[$repo\]/,/Include/ s|Include = .*|Server = https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch\nSigLevel = PackageRequired|" $pacman_conf
 done
 
 
@@ -263,24 +248,25 @@ sudo cp /etc/pacman.conf /etc/pacman.conf.backup
 sudo cp $ISO_HOME/pacman.conf /etc/pacman.conf
 
 
-sudo cp $USB_HOME/etc/pacman.conf $USB_HOME/etc/pacman.conf.backup
-sudo cp $ISO_HOME/pacman.conf $USB_HOME/etc/pacman.conf
+sudo cp $ISO_HOME/airootfs/etc/pacman.conf $ISO_HOME/airootfs/etc/pacman.conf.backup
+sudo cp $ISO_HOME/pacman.conf $ISO_HOME/airootfs/etc/pacman.conf
 
-echo -e "#n[zfsrepo]#nSigLevel = Optional TrustAll#nServer = \
-file:///home/$USER/ISOBUILD/zfsiso/zfsrepo" >> $iso_home/pacman.conf
+sudo echo -e "\n[zfsrepo]\nSigLevel = Optional TrustAll\nServer = file:///home/$USER/ISOBUILD/zfsiso/zfsrepo" >> $ISO_HOME/pacman.conf
 
-cd $iso_home
+cd $ISO_HOME
 
 
 
 mkdir {WORK,ISOOUT}
 
 
-(cd $iso_home && sudo mkarchiso -v -w WORK -o ISOOUT .)
+(cd $ISO_HOME && sudo mkarchiso -v -w WORK -o ISOOUT .)
 
 sudo cp /etc/pacman.conf /etc/pacman.conf.modified
 sudo mv /etc/pacman.conf.backup /etc/pacman.conf
 
+user_dir="/home/$USER"
+pyUrl="https://raw.githubusercontent.com/Epineph/zfsArch/main/test.py"
 
 
 list_devices() {
@@ -288,30 +274,27 @@ list_devices() {
     lsblk -o NAME,SIZE,TYPE,MOUNTPOINT
 }
 
-locate_customISO_file() {
-    local latest_iso=$(find $ISO_HOME/ISOOUT -type f -name "archlinux-*.iso" -printf "%T@ %p\n" | sort -n | tail -1 | cut -d' ' -f2-)
-    if [[ -f "$latest_iso" ]]; then
-        list_devices
-        read -p "Enter the device name (e.g., /dev/sda, /dev/nvme0n1): " device
 
-        if [ -b "$device" ]; then
-            read -p "Do you want manual partitioning? (yes/no): " manual_partitioning
-            if [[ "$manual_partitioning" == "yes" ]]; then
-                # Manual partitioning with Python script
-                (cd $USER_DIR && curl -L $PY_URL > py_script.py
-                sudo chmod +rwx py_script.py && sudo python3 ./py_script.py "$latest_iso" "$device")
-		sudo umount /mnt && sudo rm py_script.py
-            else
-                # Automatic partitioning with ddrescue
-                burnISO_to_USB "$latest_iso" "$device"
-            fi
-        else
-            echo "Invalid device name."
-        fi
-    else
-        echo "No ISO file found."
+
+locate_customISO_file() {
+  local ISO_LOCATION="$ISO_HOME/ISOOUT/"
+  local ISO_FILES="$ISO_LOCATION/archlinux-*.iso"
+
+  for f in $ISO_FILES; do
+    if [ -f "$f" ]; then
+      list_devices
+      read -p "Enter the device name \
+      (e.g., /dev/sda, /dev/nvme0n1): " device
+
+      if [ -b "$device" ]; then
+        burnISO_to_USB "$f" "$device"  # Burn the ISO to USB
+      else
+        echo "Invalid device name."
+      fi
     fi
+  done
 }
+
 
 burnISO_to_USB() {
     # Install ddrescue if not installed
@@ -325,4 +308,25 @@ burnISO_to_USB() {
     sudo ddrescue -d -D --force "$1" "$2" /tmp/ddrescue.log
 }
 
-locate_customISO_file
+
+read -p "Do you want to burn the ISO to USB right \
+now? (yes/no): " confirmation
+if [ "$confirmation" == "yes" ]; then
+  read -p "do you want to choose the sizes of the partitions? \
+  (yes/no): " USER_PARTITION_CONFIRMATION
+    if [ "$USER_PARTITION_CONFIRMATION" == "yes" ]; then
+    list_devices
+    echo "iso path is (remember to include filename):" \
+    && ls -l $ISO_HOME/ISOOUT
+      (cd $USER_DIR && curl -L $PY_URL > py_script.py
+      sudo chmod +rwx py_script.py && sudo python3 ./py_script.py)
+    else
+      locate_customISO_file
+    fi
+else
+  echo "Exiting."
+  sleep 2
+  exit
+fi
+
+)
