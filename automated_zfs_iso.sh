@@ -1,26 +1,26 @@
-#########################################################
-# Global variables which are used throughout the script
-# If you decide to change them, remember to change them
-# throughout the scip
-#########################################################
-
-USER_DIR="/home/$USER"
-BUILD_DIR="$USER_DIR/builtPackages"
-PY_URL="https://raw.githubusercontent.com/Epineph/zfsArch/main/test.py"
-ISO_HOME="$USER_DIR/ISOBUILD/zfsiso"
-ISO_LOCATION="$ISO_HOME/ISOOUT/"
-ISO_FILES="$ISO_LOCATION/archlinux-*.iso"
-AUR_HELPER_DIR="$AUR_HELPER_DIR"
-ZFS_REPO_DIR="$ISO_HOME/zfsrepo"
-GITHUB_REPOSITORY="$git_author/$repo_name"
-AUR_URL="https://aur.archlinux.org"
-
-#########################################################
-# Function that checks if the needed packages are installed
-# If some package is missing, the user will be prompted
-# and asked if the packages can be installed, otherwise
-# the script will fail
-#########################################################
+#########################################################################
+# Global variables which are used throughout the script                 #
+# If you decide to change them, remember to change them                 #
+# throughout the scip                                                   #
+#########################################################################
+                                                                        #
+USER_DIR="/home/$USER"                                                  #
+BUILD_DIR="$USER_DIR/builtPackages"                                     #
+PY_URL="https://raw.githubusercontent.com/Epineph/zfsArch/main/test.py" #
+ISO_HOME="$USER_DIR/ISOBUILD/zfsiso"                                    #
+ISO_LOCATION="$ISO_HOME/ISOOUT/"                                        #
+ISO_FILES="$ISO_LOCATION/archlinux-*.iso"                               #
+AUR_HELPER_DIR="$AUR_HELPER_DIR"                                        #
+ZFS_REPO_DIR="$ISO_HOME/zfsrepo"                                        #
+GITHUB_REPOSITORY="$git_author/$repo_name"                              #
+AUR_URL="https://aur.archlinux.org"                                     #
+                                                                        #
+#########################################################################
+# Function that checks if the needed packages are installed             #
+# If some package is missing, the user will be prompted                 #
+# and asked if the packages can be installed, otherwise                 #
+# the script will fail                                                  #
+#########################################################################
 
 check_and_install_packages() {
   local missing_packages=()
@@ -54,12 +54,12 @@ check_and_install_packages() {
   fi
 }
 
-#########################################################
+#########################################################################
 # Function that checks if an AUR helper is installled
 # The user is asked to install yay if it isn't installed
 # An AUR-helper is needed to get the needed packages
 # to build the iso.
-#########################################################
+##########################################################################
 
 (
 
@@ -135,11 +135,11 @@ clone() {
 }
 
 
-#########################################################
+#########################################################################
 # The packages (zfs-dkms and zfs-utils) will be built
 # and added to a custom repository which the iso
 # will use and include in the resulting image.
-#########################################################
+#########################################################################
 
 (clone https://aur.archlinux.org/zfs-dkms.git build)
 (clone https://aur.archlinux.org/zfs-utils.git build)
@@ -173,10 +173,11 @@ sudo repo-add zfsrepo.db.tar.gz *.zst
 
 sleep 1
 
+# allowing 5 parallel downloads
+sed -i "/\ParallelDownloads = 5/"'s/^#//' $ISO_HOME/pacman.conf 
 
-sed -i "/\ParallelDownloads = 5/"'s/^#//' $ISO_HOME/pacman.conf # allowing 5 parallel downloads
-
-sed -i "/\[multilib\]/,/Include/"'s/^#//' $ISO_HOME/pacman.conf # uncommenting multilib
+# uncommenting multilib
+sed -i "/\[multilib\]/,/Include/"'s/^#//' $ISO_HOME/pacman.conf 
 
 echo -e "\n\n#Custom Packages\nlinux-headers\nzfs-dkms\nzfs-utils" | sudo tee -a $ISO_HOME/packages.x86_64
 
@@ -191,17 +192,17 @@ pacman_conf="$ISO_HOME/pacman.conf"
 # Export the URL so that it can be accessed as an environment variable in Python
 export url
 
-#######################################################################
-# Nested python script that fetches the date for the latest change    #
-# made to the zfs kernels and will change the pacman.conf so that     #
-# packages from the arch archive matching the date are retrieved      #
-# to avoid conflicts when new kernel updates are released before zfs  #
-# kernels have been update, which can cause the pc to crash           #
-# So be careful if you decide to update your kernels, and it would be #
-# wise to keep atleast one kernel that is held back from updating     #
-# until you are sure that zfs has updated it as well. Refer to the URL#
-# above, which should contains this information                       #
-#######################################################################
+#########################################################################
+# Nested python script that fetches the date for the latest change      #
+# made to the zfs kernels and will change the pacman.conf so that       #
+# packages from the arch archive matching the date are retrieved        #
+# to avoid conflicts when new kernel updates are released before zfs    #
+# kernels have been update, which can cause the pc to crash             #
+# So be careful if you decide to update your kernels, and it would be   #
+# wise to keep atleast one kernel that is held back from updating       #
+# until you are sure that zfs has updated it as well. Refer to the URL  #
+# above, which should contains this information                         #
+#########################################################################
 
 
 # Run the Python script and capture the formatted date
