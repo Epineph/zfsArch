@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 import subprocess
 import sys
+import os
 
 def run_command(command):
+    """Run a shell command and return its output"""
     try:
         output = subprocess.check_output(command, shell=True, stderr=subprocess.STDOUT)
         return output.decode()
     except subprocess.CalledProcessError as e:
         return e.output.decode()
 
-def create_bootable_usb(iso_path, usb_device):
-    # User input for partition sizes
+def create_bootable_usb():
+    # Get user input
+    iso_path = input("Enter the path to the ISO file: ").strip()
+    usb_device = input("Enter the USB device path (e.g., /dev/sdx): ").strip()
     partition1_size = input("Enter the size (in MB) for the first partition: ").strip()
     partition2_size = input("Enter the size (in MB) for the second partition (optional, press Enter to skip): ").strip()
-
 
     # Partition the USB Drive
     partition_command_1 = f"echo -e 'o\\nn\\np\\n1\\n\\n+{partition1_size}M\\nw' | fdisk {usb_device}"
@@ -51,7 +54,4 @@ def create_bootable_usb(iso_path, usb_device):
 
 # Run the script
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python3 script.py [ISO_PATH] [USB_DEVICE]")
-        sys.exit(1)
-    create_bootable_usb(sys.argv[1], sys.argv[2])
+    create_bootable_usb()
