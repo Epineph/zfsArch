@@ -56,11 +56,11 @@ check_and_install_packages() {
 }
 
 #########################################################################
-# Function that checks if an AUR helper is installled
-# The user is asked to install yay if it isn't installed
-# An AUR-helper is needed to get the needed packages
-# to build the iso.
-##########################################################################
+# Function that checks if an AUR helper is installled                   #
+# The user is asked to install yay if it isn't installed                #
+# An AUR-helper is needed to get the needed packages                    #
+# to build the iso.                                                     #
+#########################################################################
 
 (
 
@@ -80,7 +80,9 @@ check_and_AUR() {
     echo
     if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
       echo "Installing yay into $USER_DIR/AUR-helpers..."
-      mkdir -p $USER_DIR/AUR-helpers && git -C $USER_DIR/AUR-helpers clone https://aur.archlinux.org/yay.git && (cd $USER_DIR/AUR-helpers/yay && makepkg -si)
+      mkdir -p $USER_DIR/AUR-helpers && git \
+      -C $USER_DIR/AUR-helpers clone https://aur.archlinux.org/yay.git \
+      && (cd $USER_DIR/AUR-helpers/yay && makepkg -si)
       cd -  # Return to the previous directory
       if [ $? -ne 0 ]; then
         echo "Failed to install yay. Aborting."
@@ -96,10 +98,22 @@ check_and_AUR() {
 }
 
 check_and_install_packages archiso git python-setuptools curl
-check_and_install_packages python-requests python-beautifulsoup4 base-devel
-check_and_install_packages pacman-contrib gcc-libs ncurses util-linux-libs popt git
+check_and_install_packages python-requests python-beautifulsoup4
+check_and_install_packages gcc-libs ncurses util-linux-libs base-devel
 
 check_and_AUR
+
+#########################################################################
+# This is a custom clone function that I have made.                     #
+# There is nothing really special about it, but it allows the user to   #
+# to clone packages from the AUR using 'clone <AUR_LINK> <option>'      #
+# option can be either 'build' (build only) or 'install' (install pkg)  #
+# The clone function can also be used for github repositories and it    #
+# and can be used with the full link provided, i.e.,                    #
+# 'clone https://github.com/<author>/<repo>' or 'clone <author>/<repo>' #
+# I made the function for my own convenience for another project.       #
+# Feel free to use or improve it if you find it useful                  #
+#########################################################################
 
 clone() {
     # Ensure the build directory exists
@@ -135,6 +149,7 @@ clone() {
     fi
 }
 
+read -p "Do you want to burn the ISO to USB after building has finished? (yes/no): " confirmation
 
 #########################################################################
 # The packages (zfs-dkms and zfs-utils) will be built
@@ -345,18 +360,9 @@ burnISO_to_USB() {
 }
 
 
-read -p "Do you want to burn the ISO to USB right now? (yes/no): " confirmation
+
 if [ "$confirmation" == "yes" ]; then
-  read -p "do you want to choose the sizes of the partitions? (yes/no): " USER_PARTITION_CONFIRMATION
-    if [ "$USER_PARTITION_CONFIRMATION" == "yes" ]; then
-      list_devices
-      echo "iso path is (remember to include filename):"
-      echo "$(ls -l $ISO_HOME/ISOOUT)"
-      (cd $USER_DIR && curl -L $PY_URL > py_script.py
-      sudo chmod +rwx py_script.py && sudo python3 ./py_script.py)
-    else
-      locate_customISO_file
-    fi
+  locate_customISO_file
 else
   echo "Exiting."
   sleep 2
