@@ -148,6 +148,7 @@ clone() {
     fi
 }
 
+
 read -p "Do you want to burn the ISO to USB after building has finished?\
 (yes/no): " confirmation
 
@@ -343,6 +344,14 @@ mkdir {WORK,ISOOUT}
 
 (cd $ISO_HOME && sudo mkarchiso -v -w WORK -o ISOOUT .)
 
+read -p "Do you want to save the ISO file? (yes/no): " save_confirmation
+
+if [ "$save_confirmation" == "yes" ]; then
+    save_customISO_file
+else
+    echo "Skipping ISO file saving."
+fi
+
 sudo cp /etc/pacman.conf /etc/pacman.conf.modified
 sudo cp /etc/pacman.conf.backup /etc/pacman.conf
 
@@ -361,6 +370,25 @@ list_devices() {
 
 
 locate_customISO_file() {
+  local ISO_LOCATION="$ISO_HOME/ISOOUT/"
+  local ISO_FILES="$ISO_LOCATION/archlinux-*.iso"
+
+  for f in $ISO_FILES; do
+    if [ -f "$f" ]; then
+      list_devices
+      read -p "Enter the device name \
+      (e.g., /dev/sda, /dev/nvme0n1): " device
+
+      if [ -b "$device" ]; then
+        burnISO_to_USB "$f" "$device"  # Burn the ISO to USB
+      else
+        echo "Invalid device name."
+      fi
+    fi
+  done
+}
+
+save_customISO_file() {
   local ISO_LOCATION="$ISO_HOME/ISOOUT/"
   local ISO_FILES="$ISO_LOCATION/archlinux-*.iso"
 
@@ -407,6 +435,24 @@ rm_dir() {
   do
     sudo rm -R "$dir"
   done
+}
+
+save_customISO_file() {
+    # Ensure the target directory exists
+    local target_dir="/home/$USER/zfs_iso"
+    mkdir -p "$target_dir"
+
+    # Locate the ISO file
+    local iso_file=$(find "$ISO_LOCATION" -type f -name 'archlinux-*.iso')
+
+    # Check if the ISO file was found
+    if [ -n "$iso_file" ]; then
+        # Copy the ISO file to the target directory
+        cp "$iso_file" "$target_dir/"
+        echo "ISO file saved to $target_dir"
+    else
+        echo "No ISO file found in $ISO_LOCATION"
+    fi
 }
 
 rm_dir $BUILD_DIR $USER_DIR/ISOBUILD
