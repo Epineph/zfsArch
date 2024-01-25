@@ -96,9 +96,15 @@ check_and_AUR() {
   fi
 }
 
-check_and_install_packages archiso git python-setuptools curl
-check_and_install_packages python-requests python-beautifulsoup4
-check_and_install_packages gcc-libs ncurses util-linux-libs base-devel
+pacman_packages=("archiso" "git" "python-setuptools" "python-virtualenvwrapper" "python-requests"\
+ "gcc-libs" "python-beautifulsoup4" "ncurses" "util-linux-libs" "base-devel")
+
+
+# Loop to clone and build each package
+for pkg in "${pacman_packages[@]}"; do
+    check_and_install_packages "${pkg}"
+done
+
 
 check_and_AUR
 
@@ -148,7 +154,6 @@ clone() {
     fi
 }
 
-
 read -p "Do you want to burn the ISO to USB after building has finished?\
 (yes/no): " confirmation
 
@@ -158,10 +163,8 @@ read -p "Do you want to burn the ISO to USB after building has finished?\
 # will use and include in the resulting image.                          #
 #########################################################################
 
-aur_packages=("zfs-dkms" "zfs-utils" "mkinitcpio-sd-zfs" "gptfdisk-git" \
-"pacman-zfs-hook") # if you want more custom packages available on your iso, just add them to the list here. The script should take care of the rest.
-
-
+aur_packages=("zfs-dkms" "zfs-utils" "mkinitcpio-sd-zfs"\
+ "gptfdisk-git" "pacman-zfs-hook") 
 
 # Loop to clone and build each package
 for pkg in "${aur_packages[@]}"; do
@@ -171,7 +174,7 @@ done
 # Ensure the ISO build directory exists
 
 
-mkdir -p $USER_DIR/ISOBUILD
+mkdir -p "$USER_DIR/ISOBUILD"
 
 cp -r /usr/share/archiso/configs/releng $USER_DIR/ISOBUILD/
 
@@ -186,14 +189,16 @@ mv releng/ zfsiso
 # Ensure the ZFS repository directory exists
 mkdir -p "$ZFS_REPO_DIR"
 
-# Loop to copy the built packages
-for pkg in "${aur_packages[@]}"; do
-    cp "$BUILD_DIR/$pkg"/*.zst "$ZFS_REPO_DIR/"
-done
-
 cd $ZFS_REPO_DIR
 
-sudo repo-add zfsrepo.db.tar.gz *.zst; sleep 1
+# Loop to copy the built packages
+for pkg in "${aur_packages[@]}"; do
+    cp "$BUILD_DIR/$pkg"/*.zst .
+done
+
+
+
+sudo repo-add zfsrepo.db.tar.gz *.zst
 
 # allowing 5 parallel downloads
 sed -i "/\ParallelDownloads = 5/"'s/^#//' $ISO_HOME/pacman.conf
@@ -285,65 +290,53 @@ else
     exit 1
 fi
 
+FORMATTED_SERVER="https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch"
+
 cd $ISO_HOME
 
+
+
 if ! grep -q "\[community\]" "$pacman_conf"; then
-        sed -i "/^\[$repo\]/,/Include/ s|Include = .*|Server = \
-        https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch\n\
-        SigLevel = PackageRequired|" $pacman_conf
+        sed -i "/^\[$repo\]/,/Include/ s|Include = .*|Server = https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch\nSigLevel = PackageRequired|" $pacman_conf
 fi
 
 # Add the [archzfs] repository configuration if it doesn't exist
 if ! grep -q "\[archzfs\]" "$pacman_conf"; then
-    echo -e "\n[archzfs]\nServer = https://archzfs.com/\$repo/\$arch\nSigLevel\
-    = Optional TrustAll" >> $pacman_conf
+    echo -e "\n[archzfs]\nServer = https://archzfs.com/\$repo/\$arch\nSigLevel = Optional TrustAll" >> $pacman_conf
 fi
 
 # Make the changes for [core], [extra], [multilib] and [community]
 for repo in core extra multilib community; do
-    sed -i "/^\[$repo\]/,/Include/ s|Include = .*|Server = \
-    https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch\n\
-    SigLevel = PackageRequired|" $pacman_conf
+    sed -i "/^\[$repo\]/,/Include/ s|Include = .*|Server = https://archive.archlinux.org/repos/${formatted_date}/\$repo/os/\$arch\nSigLevel = PackageRequired|" $pacman_conf
 done
-
-
-
 
 sudo cp /etc/pacman.conf /etc/pacman.conf.backup
 
 sudo cp $ISO_HOME/pacman.conf /etc/pacman.conf
 
 
-sudo cp $ISO_HOME/airootfs/etc/pacman.conf \
-  $ISO_HOME/airootfs/etc/pacman.conf.backup
 sudo cp $ISO_HOME/pacman.conf $ISO_HOME/airootfs/etc/pacman.conf
 
 sudo echo -e "\n[zfsrepo]\nSigLevel = Optional TrustAll\nServer\
 = file:///home/$USER/ISOBUILD/zfsiso/zfsrepo" >> $ISO_HOME/pacman.conf
 
-cd $ISO_HOME
 
 
-echo "Checking if releng directory was copied..."
-ls -l "$USER_DIR/ISOBUILD/"
-
-# After moving the releng directory
-echo "Checking if releng directory was moved to $ISO_HOME..."
-ls -l "$ISO_HOME"
-
-# After operations involving pacman.conf
-echo "Checking if pacman.conf exists in $ISO_HOME..."
-ls -l "$ISO_HOME/pacman.conf"
-
-# Before running mkarchiso
-echo "Checking contents of $ISO_HOME before mkarchiso..."
-ls -l "$ISO_HOME"
 
 mkdir {WORK,ISOOUT}
 
 
 (cd $ISO_HOME && sudo mkarchiso -v -w WORK -o ISOOUT .)
 
+
+sudo cp /etc/pacman.conf.backup /etc/pacman.conf
+
+################################################################################
+# This part asks the user if the image should be burned to a usb               #
+# I have also included the possibility to choose the size of the               #
+# usb partitions by curling an interactive python script from my repo          #
+# you have to fill out the path to the ISO                                     #
+################################################################################
 read -p "Do you want to save the ISO file? (yes/no): " save_confirmation
 
 if [ "$save_confirmation" == "yes" ]; then
@@ -352,8 +345,6 @@ else
     echo "Skipping ISO file saving."
 fi
 
-sudo cp /etc/pacman.conf /etc/pacman.conf.modified
-sudo cp /etc/pacman.conf.backup /etc/pacman.conf
 
 ################################################################################
 # This part asks the user if the image should be burned to a usb               #
@@ -388,24 +379,7 @@ locate_customISO_file() {
   done
 }
 
-save_customISO_file() {
-  local ISO_LOCATION="$ISO_HOME/ISOOUT/"
-  local ISO_FILES="$ISO_LOCATION/archlinux-*.iso"
 
-  for f in $ISO_FILES; do
-    if [ -f "$f" ]; then
-      list_devices
-      read -p "Enter the device name \
-      (e.g., /dev/sda, /dev/nvme0n1): " device
-
-      if [ -b "$device" ]; then
-        burnISO_to_USB "$f" "$device"  # Burn the ISO to USB
-      else
-        echo "Invalid device name."
-      fi
-    fi
-  done
-}
 
 
 burnISO_to_USB() {
