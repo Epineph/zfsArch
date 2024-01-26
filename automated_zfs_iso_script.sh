@@ -344,6 +344,25 @@ if [ "$save_confirmation" == "yes" ]; then
 else
     echo "Skipping ISO file saving."
 fi
+save_customISO_file() {
+    # Ensure the target directory exists
+    local target_dir="/home/$USER/zfs_iso"
+    mkdir -p "$target_dir"
+
+    # Locate the ISO file
+    local iso_file=$(find "$ISO_LOCATION" -type f -name 'archlinux-*.iso')
+
+    # Check if the ISO file was found
+    if [ -n "$iso_file" ]; then
+        # Copy the ISO file to the target directory
+        cp "$iso_file" "$target_dir/"
+        echo "ISO file saved to $target_dir"
+    else
+        echo "No ISO file found in $ISO_LOCATION"
+    fi
+}
+
+
 
 
 ################################################################################
@@ -411,23 +430,6 @@ rm_dir() {
   done
 }
 
-save_customISO_file() {
-    # Ensure the target directory exists
-    local target_dir="/home/$USER/zfs_iso"
-    mkdir -p "$target_dir"
-
-    # Locate the ISO file
-    local iso_file=$(find "$ISO_LOCATION" -type f -name 'archlinux-*.iso')
-
-    # Check if the ISO file was found
-    if [ -n "$iso_file" ]; then
-        # Copy the ISO file to the target directory
-        cp "$iso_file" "$target_dir/"
-        echo "ISO file saved to $target_dir"
-    else
-        echo "No ISO file found in $ISO_LOCATION"
-    fi
-}
 
 rm_dir $BUILD_DIR $USER_DIR/ISOBUILD
 
