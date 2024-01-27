@@ -21,6 +21,24 @@ AUR_URL="https://aur.archlinux.org"                                            #
 # the script will fail                                                         #
 ################################################################################
 
+save_ISO_file() {
+    # Ensure the target directory exists
+    local target_dir="/home/$USER/zfs_iso"
+    mkdir -p "$target_dir"
+
+    # Locate the ISO file
+    local iso_file=$(find "$ISO_LOCATION" -type f -name 'archlinux-*.iso')
+
+    # Check if the ISO file was found
+    if [ -n "$iso_file" ]; then
+        # Copy the ISO file to the target directory
+        cp "$iso_file" "$target_dir/"
+        echo "ISO file saved to $target_dir"
+    else
+        echo "No ISO file found in $ISO_LOCATION"
+    fi
+}
+
 check_and_install_packages() {
   local missing_packages=()
 
@@ -340,21 +358,7 @@ sudo cp /etc/pacman.conf.backup /etc/pacman.conf
 read -p "Do you want to save the ISO file? (yes/no): " save_confirmation
 
 if [ "$save_confirmation" == "yes" ]; then
-    # Ensure the target directory exists
-    local target_dir="/home/$USER/zfs_iso"
-    mkdir -p "$target_dir"
-
-    # Locate the ISO file
-    local iso_file=$(find "$ISO_LOCATION" -type f -name 'archlinux-*.iso')
-
-    # Check if the ISO file was found
-    if [ -n "$iso_file" ]; then
-        # Copy the ISO file to the target directory
-        cp "$iso_file" "$target_dir/"
-        echo "ISO file saved to $target_dir"
-    else
-        echo "No ISO file found in $ISO_LOCATION"
-    fi
+    save_ISO_file
 else
     echo "Skipping ISO file saving."
 fi
