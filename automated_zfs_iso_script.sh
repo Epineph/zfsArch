@@ -340,11 +340,6 @@ sudo cp /etc/pacman.conf.backup /etc/pacman.conf
 read -p "Do you want to save the ISO file? (yes/no): " save_confirmation
 
 if [ "$save_confirmation" == "yes" ]; then
-    save_customISO_file
-else
-    echo "Skipping ISO file saving."
-fi
-save_customISO_file() {
     # Ensure the target directory exists
     local target_dir="/home/$USER/zfs_iso"
     mkdir -p "$target_dir"
@@ -360,7 +355,9 @@ save_customISO_file() {
     else
         echo "No ISO file found in $ISO_LOCATION"
     fi
-}
+else
+    echo "Skipping ISO file saving."
+fi
 
 
 
