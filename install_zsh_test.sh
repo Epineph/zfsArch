@@ -107,7 +107,7 @@ cd /mnt
 
 rm -rf ./*
 
-
+# is it possible to use $ROOT_PARTITIONS[0] instead?
 zpool import -d /dev/nvme0n1p4 -R /mnt zroot -N
 
 # zpool import zroot -R /mnt
