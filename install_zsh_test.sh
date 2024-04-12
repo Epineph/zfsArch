@@ -22,18 +22,6 @@ mkfs.ext4 /dev/md/boot
 
 DISK_ARRAY="/dev/nvme1n1p6 /dev/nvme0n1p4 /dev/sda4"
 
-# mdadm --create /dev/md/boot --level=0 --raid-disks=3 --metadata=1.0 $BOOT_PARTITION1 $BOOT_PARTITION2 $BOOT_PARTITION3
-
-# #sgdisk -N 1 -t 1:8300 -c 1:"Linux filesystem" /dev/md0
-# mkfs.ext4 /dev/md/boot
-
-
-
-IFS=' ' read -r -a DISK_ARRAY <<< "$DISK_ARRAY"
-
-for i in "${!DISK_ARRAY[@]}"; do
-    eval "DISK$((i+1))=${DISK_ARRAY[$i]}"
-done
 
 
 
@@ -73,7 +61,7 @@ for ds in ${SYSTEM_DATASETS}; do
   ${SYS_ROOT}/${SYSTEM_NAME}/"${ds}"
 done
 
-#zfs create -o mountpoint=/var/log/journal -o acltype=posixacl ${SYS_ROOT}/${SYSTEM_NAME}/var/log/journal
+zfs create -o mountpoint=/var/log/journal -o acltype=posixacl ${SYS_ROOT}/${SYSTEM_NAME}/var/log/journal
 
 USER_DATASETS='heini heini/local heini/config heini/cache'
 for ds in ${USER_DATASETS}; do 
@@ -85,7 +73,7 @@ done
 zfs create -o mountpoint=/home/heini/.local/share \
     -o canmount=off ${SYS_ROOT}/${SYSTEM_NAME}/home/heini/local/share
 
-zfs create -o mountpoint=/home/heini/local/share/Steam \
+zfs create -o mountpoint=/home/heini/.local/share/Steam \
     ${SYS_ROOT}/${SYSTEM_NAME}/home/heini/local/share/Steam
 #zfs create -o mountpoint=/${SYS_ROOT}/${SYSTEM_NAME}/home/heini/.local/share/Steam ${SYS_ROOT}/${SYSTEM_NAME}/home/heini/.local/share/Steam
 
