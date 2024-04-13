@@ -1,7 +1,5 @@
 #!/bin/bash
 
-
-
 # Ensure the script is run as root
 if [[ $EUID -ne 0 ]]; then
    echo "This script must be run as root"
@@ -13,7 +11,7 @@ echo "Available disks:"
 lsblk -d --output NAME,SIZE,MODEL
 
 # Ask user for disks to use
-read -p "Enter disk IDs for installation separated by space (e.g., sda sdb): " -a disk_ids
+read -p "Enter disk IDs for installation separated by space (e.g., sda sdb nvme0n1): " -a disk_ids
 
 echo "You have selected: ${disk_ids[@]}"
 read -p "Proceed with these disks? This will remove existing data. [y/N] " confirmation
@@ -32,25 +30,43 @@ swap_size_mb=$((swap_size_gb * 1024))  # Calculate the swap size in MB for ZFS
 # Create partitions on each disk
 for disk in "${disk_ids[@]}"; do
     echo "Creating partitions on /dev/$disk..."
-    sgdisk --zap-all /dev/$disk  # Clear existing partition table
+    sgdisk --zap-all "/dev/$disk"  # Clear existing partition table
 
     # Optionally format the EFI partition
     if [[ $format_efi == "y" ]]; then
-        sgdisk -n1:0:+512M -t1:ef00 /dev/$disk  # EFI
+        # Special handling for nvme devices
+        if [[ $disk == nvme* ]]; then
+            sgdisk -n1:0:+512M -t1:ef00 "/dev/${disk}p1"
+        else
+            sgdisk -n1:0:+512M -t1:ef00 "/dev/${disk}1"
+        fi
     fi
 
-    sgdisk -n2:0:+${swap_size_mb}M -t2:8200 /dev/$disk  # Swap, using the specified size
-    sgdisk -n3:0:+210G -t3:bf00 /dev/$disk  # ZFS
+    # Creating swap and ZFS partitions
+    if [[ $disk == nvme* ]]; then
+        sgdisk -n2:0:+${swap_size_mb}M -t2:8200 "/dev/${disk}p2"  # Swap
+        sgdisk -n3:0:+210G -t3:bf00 "/dev/${disk}p3"  # ZFS
+    else
+        sgdisk -n2:0:+${swap_size_mb}M -t2:8200 "/dev/${disk}2"  # Swap
+        sgdisk -n3:0:+210G -t3:bf00 "/dev/${disk}3"  # ZFS
+    fi
 done
-
 
 # Construct root and swap partition identifiers
 root_partitions=()
 swap_partitions=()
 for disk in "${disk_ids[@]}"; do
-    root_partitions+=("/dev/${disk}3")
-    swap_partitions+=("/dev/${disk}2")
+    if [[ $disk == nvme* ]]; then
+        root_partitions+=("/dev/${disk}p3")
+        swap_partitions+=("/dev/${disk}p2")
+    else
+        root_partitions+=("/dev/${disk}3")
+        swap_partitions+=("/dev/${disk}2")
+    fi
 done
+
+# Ensure ZFS module is loaded
+modprobe zfs
 
 # Create ZFS pool with RAID0
 echo "Creating ZFS pool..."
@@ -71,6 +87,7 @@ zfs create -o canmount=off -o mountpoint=none zfsroot/sys/archzfs
 zfs create -o mountpoint=/ -o canmount=noauto zfsroot/sys/archzfs/ROOT/default
 zfs create -o mountpoint=/home zfsroot/sys/archzfs/home
 
+# More ZFS and system configuration...
 # Apply ZFS settings for system directories
 system_datasets=('var/lib/systemd/coredump' 'var/log' 'var/log/journal' 'var/lib/lxc' 'var/lib/lxd' 'var/lib/machines' 'var/lib/libvirt' 'var/cache' 'usr/local')
 for ds in ${system_datasets[@]}; do 
