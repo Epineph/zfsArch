@@ -1,7 +1,7 @@
 #!/bin/bash
 
 USER_NAME="heini"
-ZFS_POOL_NAME="zroot"
+ZFS_POOL_NAME="zfsroot"
 ZFS_DATA_POOL_NAME="zfsdata"
 ZFS_SYS="sys"
 SYS_ROOT="${ZFS_POOL_NAME}/${ZFS_SYS}"
