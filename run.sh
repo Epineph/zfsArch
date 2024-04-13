@@ -57,7 +57,7 @@ done
 # Allow the system to recognize new partitions
 sleep 5
 
-echo "Partition creation complete."
+echo "Partition creation complete."å
 
 # Construct root and swap partition identifiers
 root_partitions=()
