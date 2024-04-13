@@ -16,6 +16,7 @@ read -p "Disk IDs: " -a disk_ids
 
 echo "You have selected: ${disk_ids[@]}"
 read -p "Proceed with these disks? This will remove existing data. [y/N] " confirmation
+read -p "Type username" user_name
 if [[ $confirmation != "y" ]]; then
     echo "Exiting installation."
     exit 1
@@ -57,6 +58,8 @@ done
 
 # Create ZFS pool with RAID0
 echo "Creating ZFS pool..."
+# Create ZFS filesystem structure
+echo "Creating ZFS pool and filesystem structure..."
 zpool create -f -o ashift=12 \
     -O acltype=posixacl \
     -O relatime=on \
@@ -68,32 +71,35 @@ zpool create -f -o ashift=12 \
     -O devices=off \
     -R /mnt zfsroot "${root_partitions[@]}"
 
-# Create ZFS filesystem structure
+# Create the root filesystem
 zfs create -o mountpoint=none zfsroot/sys
+
+# Create intermediate node for archzfs
 zfs create -o canmount=off -o mountpoint=none zfsroot/sys/archzfs
-zfs create -o mountpoint=/ -o canmount=noauto zfsroot/sys/archzfs/ROOT/default
+
+# Create the ROOT dataset
+zfs create -o mountpoint=/ -o canmount=noauto zfsroot/sys/archzfs/ROOT
+
+# Create the default sub-dataset under ROOT
+zfs create zfsroot/sys/archzfs/ROOT/default
+
+# Create home dataset
 zfs create -o mountpoint=/home zfsroot/sys/archzfs/home
 
-# More ZFS and system configuration...
-# More ZFS and system configuration...
-# Apply ZFS settings for system directories
+# Create system directories under ROOT
 system_datasets=('var/lib/systemd/coredump' 'var/log' 'var/log/journal' 'var/lib/lxc' 'var/lib/lxd' 'var/lib/machines' 'var/lib/libvirt' 'var/cache' 'usr/local')
-for ds in ${system_datasets[@]}; do 
-    zfs create -o mountpoint=/${ds} "zfsroot/sys/archzfs/${ds}"
+for ds in ${system_datasets[@]}; do
+    zfs create -o mountpoint=/$ds zfsroot/sys/archzfs/ROOT/$ds
 done
 
 # Setup user datasets
-# Define user datasets array
 user_datasets=("${user_name}" "${user_name}/.local" "${user_name}/.config" "${user_name}/.cache")
-
-# Create ZFS datasets for the user
-for ds in "${user_datasets[@]}"; do 
-    zfs create -o mountpoint=/home/${ds} "zfsroot/sys/archzfs/home/${ds}"
+for ds in ${user_datasets[@]}; do
+    zfs create -o mountpoint=/home/$ds zfsroot/sys/archzfs/home/$ds
 done
 
-
-# Set permissions
-zfs allow "$user_name" create,mount,mountpoint,snapshot "zfsroot/sys/archzfs/home/$user_name"
+# Set permissions for the user
+zfs allow "$user_name" create,mount,mountpoint,snapshot zfsroot/sys/archzfs/home/$user_name
 
 # Create and activate swap
 echo "Creating a ZFS swap volume of size ${swap_size_gb}GB..."
