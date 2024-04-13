@@ -10,8 +10,9 @@ fi
 echo "Available disks:"
 lsblk -d --output NAME,SIZE,MODEL
 
-# Ask user for disks to use
-read -p "Enter disk IDs for installation separated by space (e.g., sda sdb nvme0n1): " -a disk_ids
+# Ask user for disks to use, specifically instructing to avoid any Windows disk
+echo "Enter disk IDs for installation, avoiding any disks with Windows installed (e.g., sda sdb nvme0n1)."
+read -p "Disk IDs: " -a disk_ids
 
 echo "You have selected: ${disk_ids[@]}"
 read -p "Proceed with these disks? This will remove existing data. [y/N] " confirmation
@@ -20,37 +21,21 @@ if [[ $confirmation != "y" ]]; then
     exit 1
 fi
 
-# Ask if the EFI partition should be formatted
-read -p "Do you want to format the EFI partition? This will remove existing bootloaders. [y/N] " format_efi
-
 # Create partitions on each disk
 for disk in "${disk_ids[@]}"; do
     echo "Creating partitions on /dev/$disk..."
     sgdisk --zap-all "/dev/$disk"  # Clear existing partition table
 
-    # Optionally format the EFI partition
-    efi_part_suffix="1"
-    swap_part_suffix="2"
-    zfs_part_suffix="3"
-    if [[ $disk == nvme* ]]; then
-        efi_part_suffix="p1"
-        swap_part_suffix="p2"
-        zfs_part_suffix="p3"
-    fi
+    sgdisk -n1:0:+512M -t1:ef00 "/dev/${disk}"  # EFI
+    sgdisk -n2:0:+2G -t2:8200 "/dev/${disk}"  # Swap
+    sgdisk -n3:0:+210G -t3:bf00 "/dev/${disk}"  # ZFS
 
-    if [[ $format_efi == "y" ]]; then
-        sgdisk -n1:0:+512M -t1:ef00 "/dev/${disk}${efi_part_suffix}"  # EFI
-    fi
-
-    sgdisk -n2:0:+2G -t2:8200 "/dev/${disk}${swap_part_suffix}"  # Swap
-    sgdisk -n3:0:+210G -t3:bf00 "/dev/${disk}${zfs_part_suffix}"  # ZFS
-
-    # Update kernel partition table information
+    # Update the kernel about the changes to the partition tables
     partprobe "/dev/$disk"
-    sleep 2  # Optional: Additional delay to ensure the system recognizes the new partitions
+    sleep 2  # Allow some time for the OS to update the device nodes
 done
 
-echo "Partition creation complete."
+
 
 # Allow the system to recognize new partitions
 sleep 5
