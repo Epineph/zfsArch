@@ -6,6 +6,9 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
+# Load ZFS module
+modprobe zfs
+
 # Display available disks
 echo "Available disks:"
 lsblk -d --output NAME,SIZE,MODEL
@@ -33,24 +36,21 @@ for disk in "${disk_ids[@]}"; do
     sgdisk --zap-all "/dev/$disk"  # Clear existing partition table
 
     # Optionally format the EFI partition
+    efi_part_suffix=1
+    swap_part_suffix=2
+    zfs_part_suffix=3
+    [[ $disk == nvme* ]] && efi_part_suffix=p1 && swap_part_suffix=p2 && zfs_part_suffix=p3
+
     if [[ $format_efi == "y" ]]; then
-        # Special handling for nvme devices
-        if [[ $disk == nvme* ]]; then
-            sgdisk -n1:0:+512M -t1:ef00 "/dev/${disk}p1"
-        else
-            sgdisk -n1:0:+512M -t1:ef00 "/dev/${disk}1"
-        fi
+        sgdisk -n1:0:+512M -t1:ef00 "/dev/${disk}${efi_part_suffix}"  # EFI
     fi
 
-    # Creating swap and ZFS partitions
-    if [[ $disk == nvme* ]]; then
-        sgdisk -n2:0:+${swap_size_mb}M -t2:8200 "/dev/${disk}p2"  # Swap
-        sgdisk -n3:0:+210G -t3:bf00 "/dev/${disk}p3"  # ZFS
-    else
-        sgdisk -n2:0:+${swap_size_mb}M -t2:8200 "/dev/${disk}2"  # Swap
-        sgdisk -n3:0:+210G -t3:bf00 "/dev/${disk}3"  # ZFS
-    fi
+    sgdisk -n2:0:+${swap_size_mb}M -t2:8200 "/dev/${disk}${swap_part_suffix}"  # Swap
+    sgdisk -n3:0:+210G -t3:bf00 "/dev/${disk}${zfs_part_suffix}"  # ZFS
 done
+
+# Wait for the kernel to recognize new partitions
+sleep 5
 
 # Construct root and swap partition identifiers
 root_partitions=()
@@ -64,9 +64,6 @@ for disk in "${disk_ids[@]}"; do
         swap_partitions+=("/dev/${disk}2")
     fi
 done
-
-# Ensure ZFS module is loaded
-modprobe zfs
 
 # Create ZFS pool with RAID0
 echo "Creating ZFS pool..."
@@ -87,6 +84,7 @@ zfs create -o canmount=off -o mountpoint=none zfsroot/sys/archzfs
 zfs create -o mountpoint=/ -o canmount=noauto zfsroot/sys/archzfs/ROOT/default
 zfs create -o mountpoint=/home zfsroot/sys/archzfs/home
 
+# More ZFS and system configuration...
 # More ZFS and system configuration...
 # Apply ZFS settings for system directories
 system_datasets=('var/lib/systemd/coredump' 'var/log' 'var/log/journal' 'var/lib/lxc' 'var/lib/lxd' 'var/lib/machines' 'var/lib/libvirt' 'var/cache' 'usr/local')
