@@ -20,14 +20,6 @@ if [[ $confirmation != "y" ]]; then
     exit 1
 fi
 
-# Ensure disks are ready and exist
-for disk in "${disk_ids[@]}"; do
-    if [ ! -b "/dev/$disk" ]; then
-        echo "Error: Disk /dev/$disk does not exist."
-        exit 2
-    fi
-done
-
 # Ask if the EFI partition should be formatted
 read -p "Do you want to format the EFI partition? This will remove existing bootloaders. [y/N] " format_efi
 
@@ -52,7 +44,13 @@ for disk in "${disk_ids[@]}"; do
 
     sgdisk -n2:0:+2G -t2:8200 "/dev/${disk}${swap_part_suffix}"  # Swap
     sgdisk -n3:0:+210G -t3:bf00 "/dev/${disk}${zfs_part_suffix}"  # ZFS
+
+    # Update kernel partition table information
+    partprobe "/dev/$disk"
+    sleep 2  # Optional: Additional delay to ensure the system recognizes the new partitions
 done
+
+echo "Partition creation complete."
 
 # Allow the system to recognize new partitions
 sleep 5
