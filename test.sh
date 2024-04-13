@@ -12,9 +12,30 @@ DATA_ROOT="${ZFS_POOL_NAME}/${DATA_STORAGE}"
 ZVOL_DEV="/dev/zvol"
 SWAP_VOL="${ZVOL_DEV}/${ZFS_POOL_NAME}/swap"
 
+#sgdisk --zap-all /dev/disk/by-id/<disk0>
+#sgdisk -n1:0:+512M -t1:ef00 /dev/disk/by-id/<disk0>
+#sgdisk -n2:0:+8G -t2:8200 /dev/disk/by-id/<disk0>
+#sgdisk -n3:0:+210G -t3:bf00 /dev/disk/by-id/<disk0>
+
+#sgdisk --zap-all /dev/disk/by-id/<disk1>
+#sgdisk -n1:0:+512M -t1:ef00 /dev/disk/by-id/<disk1>
+#sgdisk -n2:0:+8G -t2:8200 /dev/disk/by-id/<disk1>
+#sgdisk -n3:0:+210G -t3:bf00 /dev/disk/by-id/<disk1>
+
+
+
 # Prompt user for partition inputs and convert them into arrays
 read -p "Enter EFI partition: " -a EFI_PARTITIONS
 read -p "Enter ROOT partitions separated by space: " -a ROOT_PARTITIONS
+
+# zfs set acltype=posixacl <nameofzpool>/<nameofdataset>
+# zfs set xattr=sa <nameofzpool>/<nameofdataset>
+
+
+# zfs set aclinherit=passthrough <nameofzpool>
+# zfs set acltype=posixacl <nameofzpool>
+# 
+
 
 
 # Now you can use $DISK1, $DISK2, etc.
@@ -32,9 +53,10 @@ zpool create -f -o ashift=12 \
 
 
 zfs create -o mountpoint=none -p ${SYS_ROOT}/${SYSTEM_NAME}
-zfs create -o mountpoint=none ${SYS_ROOT}/${SYSTEM_NAME}/ROOT
-zfs create -o mountpoint=/ ${SYS_ROOT}/${SYSTEM_NAME}/ROOT/default
+zfs create -o canmount=off -o mountpoint=none ${SYS_ROOT}/${SYSTEM_NAME}/ROOT
+zfs create -o mountpoint=/ -o canmount=noauto ${SYS_ROOT}/${SYSTEM_NAME}/ROOT/default
 zfs create -o mountpoint=/home ${SYS_ROOT}/${SYSTEM_NAME}/home
+zfs create -o mountpoint=none ${SYS_ROOT}/${SYSTEM_NAME}/ROOT
 zfs create -o canmount=off -o mountpoint=/var -o xattr=sa ${SYS_ROOT}/${SYSTEM_NAME}/var
 zfs create -o canmount=off -o mountpoint=/var/lib ${SYS_ROOT}/${SYSTEM_NAME}/var/lib
 zfs create -o canmount=off -o mountpoint=/var/lib/systemd ${SYS_ROOT}/${SYSTEM_NAME}/var/lib/systemd
@@ -60,6 +82,8 @@ for ds in ${USER_DATASETS}; do
     zfs create -o mountpoint=/${ds} \
     ${SYS_ROOT}/${SYSTEM_NAME}/home/"${ds}"
 done
+
+
 
 #zfs create -o mountpoint=/${SYS_ROOT}/${SYSTEM_NAME}/home/heini/.local/share -o canmount=off ${SYS_ROOT}/${SYSTEM_NAME}/home/heini/.local/share
 zfs create -o mountpoint=/home/heini/.local/share \
@@ -102,6 +126,11 @@ zpool import -d "${ROOT_PARTITIONS[0]}" -R /mnt $ZFS_POOL_NAME -N
 
 zfs import
 
-mkdir /mnt/boot
-mount mkdir /mnt/boot
-mount $EFI_PARTITION /mnt/boot
+mkdir -p /mnt/{boot/efi,etc/zfs}
+mount $EFI_PARTITION /mnt/boot/efi
+
+zpool set cachefile=/etc/zfs/zpool.cache $ZFS_POOL_NAME
+cp /etc/zfs/zpool.cache /mnt/etc/zpool.cache
+
+genfstab -U /mnt >> /mnt/etc/fstab
+echo "${SWAP_VOL}    none       swap  discard                    0  0" >> /mnt/etc/fstab
