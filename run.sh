@@ -6,9 +6,6 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-# Load ZFS module
-modprobe zfs
-
 # Display available disks
 echo "Available disks:"
 lsblk -d --output NAME,SIZE,MODEL
@@ -26,29 +23,30 @@ fi
 # Ask if the EFI partition should be formatted
 read -p "Do you want to format the EFI partition? This will remove existing bootloaders. [y/N] " format_efi
 
-# Ask for desired swap size in GB
-read -p "Enter desired swap size in GB (e.g., 8 for 8GB): " swap_size_gb
-swap_size_mb=$((swap_size_gb * 1024))  # Calculate the swap size in MB for ZFS
-
 # Create partitions on each disk
 for disk in "${disk_ids[@]}"; do
     echo "Creating partitions on /dev/$disk..."
     sgdisk --zap-all "/dev/$disk"  # Clear existing partition table
 
     # Optionally format the EFI partition
-    efi_part_suffix=1
-    swap_part_suffix=2
-    zfs_part_suffix=3
-    [[ $disk == nvme* ]] && efi_part_suffix=p1 && swap_part_suffix=p2 && zfs_part_suffix=p3
+    efi_part_suffix="1"
+    swap_part_suffix="2"
+    zfs_part_suffix="3"
+    if [[ $disk == nvme* ]]; then
+        efi_part_suffix="p1"
+        swap_part_suffix="p2"
+        zfs_part_suffix="p3"
+    fi
 
     if [[ $format_efi == "y" ]]; then
         sgdisk -n1:0:+512M -t1:ef00 "/dev/${disk}${efi_part_suffix}"  # EFI
     fi
 
-    sgdisk -n2:0:+${swap_size_mb}M -t2:8200 "/dev/${disk}${swap_part_suffix}"  # Swap
+    sgdisk -n2:0:+2G -t2:8200 "/dev/${disk}${swap_part_suffix}"  # Swap
     sgdisk -n3:0:+210G -t3:bf00 "/dev/${disk}${zfs_part_suffix}"  # ZFS
 done
 
+echo "Partition creation complete."
 # Wait for the kernel to recognize new partitions
 sleep 5
 
