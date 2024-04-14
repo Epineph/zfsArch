@@ -1,4 +1,17 @@
 #!/bin/bash
+swap_partitions=("nvme1n1p3" "nvme0n1p2")
+root_partition=("nvme1n1p4" "nvme0n1p3")
+USER_NAME="heini"
+ZFS_POOL_NAME="zroot"
+ZFS_DATA_POOL_NAME="zfsdata"
+ZFS_SYS="sys"
+SYS_ROOT="${ZFS_POOL_NAME}/${ZFS_SYS}"
+SYSTEM_NAME="archzfs"
+DATA_STORAGE="data"
+DATA_ROOT="${ZFS_POOL_NAME}/${DATA_STORAGE}"
+ZVOL_DEV="/dev/zvol"
+SWAP_VOL="${ZVOL_DEV}/${ZFS_POOL_NAME}/swap"
+
 
 echo "Creating ZFS pool and filesystem structure..."
 zpool create -f -o ashift=12 \
@@ -12,40 +25,60 @@ zpool create -f -o ashift=12 \
     -O devices=off \
     -R /mnt zfsroot "${root_partitions[@]}"
 
-# Create the root filesystem
-zfs create -o mountpoint=none zfsroot/sys
+zfs create -o mountpoint=none -p ${SYS_ROOT}/${SYSTEM_NAME}
+zfs create -o mountpoint=none ${SYS_ROOT}/${SYSTEM_NAME}/ROOT
+zfs create -o mountpoint=/ ${SYS_ROOT}/${SYSTEM_NAME}/ROOT/default
+zfs create -o mountpoint=/home ${SYS_ROOT}/${SYSTEM_NAME}/home
+zfs create -o canmount=off -o mountpoint=/var -o xattr=sa ${SYS_ROOT}/${SYSTEM_NAME}/var
+zfs create -o canmount=off -o mountpoint=/var/lib ${SYS_ROOT}/${SYSTEM_NAME}/var/lib
+zfs create -o canmount=off -o mountpoint=/var/lib/systemd ${SYS_ROOT}/${SYSTEM_NAME}/var/lib/systemd
+zfs create -o canmount=off -o mountpoint=/usr ${SYS_ROOT}/${SYSTEM_NAME}/usr
 
-# Create intermediate node for archzfs
-zfs create -o canmount=off -o mountpoint=none zfsroot/sys/archzfs
 
-# Create the ROOT dataset
-zfs create -o mountpoint=/ -o canmount=noauto zfsroot/sys/archzfs/ROOT
+SYSTEM_DATASETS='var/lib/systemd/coredump var/log var/log/journal '
+SYSTEM_DATASETS+='var/lib/lxc var/lib/lxd var/lib/machines var/lib/libvirt var/cache usr/local'
 
-# Create the default sub-dataset under ROOT
-zfs create zfsroot/sys/archzfs/ROOT/default
+# for ds in ${SYSTEM_DATASETS}; do 
+#     zfs create -o mountpoint=${ds} ${SYS_ROOT}/${SYSTEM_NAME}/${ds};
+# done
 
-# Create home dataset
-zfs create -o mountpoint=/home zfsroot/sys/archzfs/home
-
-# Create system directories under ROOT
-system_datasets=('var/lib/systemd/coredump' 'var/log' 'var/log/journal' 'var/lib/lxc' 'var/lib/lxd' 'var/lib/machines' 'var/lib/libvirt' 'var/cache' 'usr/local')
-for ds in ${system_datasets[@]}; do
-    zfs create -o mountpoint=/$ds zfsroot/sys/archzfs/ROOT/$ds
+for ds in ${SYSTEM_DATASETS}; do 
+  zfs create -o mountpoint=/${SYS_ROOT}/${SYSTEM_NAME}/${ds} \
+  ${SYS_ROOT}/${SYSTEM_NAME}/"${ds}"
 done
 
-# Setup user datasets
-user_datasets=("${user_name}" "${user_name}/.local" "${user_name}/.config" "${user_name}/.cache")
-for ds in ${user_datasets[@]}; do
-    zfs create -o mountpoint=/home/$ds zfsroot/sys/archzfs/home/$ds
+#zfs create -o mountpoint=/var/log/journal -o acltype=posixacl ${SYS_ROOT}/${SYSTEM_NAME}/var/log/journal
+
+USER_DATASETS='heini heini/local heini/config heini/cache'
+for ds in ${USER_DATASETS}; do 
+    zfs create -o mountpoint=/${SYS_ROOT}/${SYSTEM_NAME}/${ds} \
+    ${SYS_ROOT}/${SYSTEM_NAME}/home/"${ds}"
 done
+
+#zfs create -o mountpoint=/${SYS_ROOT}/${SYSTEM_NAME}/home/heini/.local/share -o canmount=off ${SYS_ROOT}/${SYSTEM_NAME}/home/heini/.local/share
+zfs create -o mountpoint=/home/heini/.local/share \
+    -o canmount=off ${SYS_ROOT}/${SYSTEM_NAME}/home/heini/local/share
+
+zfs create -o mountpoint=/home/heini/local/share/Steam \
+    ${SYS_ROOT}/${SYSTEM_NAME}/home/heini/local/share/Steam
+#zfs create -o mountpoint=/${SYS_ROOT}/${SYSTEM_NAME}/home/heini/.local/share/Steam ${SYS_ROOT}/${SYSTEM_NAME}/home/heini/.local/share/Steam
+
+zfs create -o mountpoint=none ${DATA_ROOT}
+
+DATA_DATASETS='Books Computer Personal Pictures University Workspace Reference'
+
+for ds in ${DATA_DATASETS}; do
+    zfs create -o mountpoint=/${DATA_ROOT}/${ds} ${DATA_ROOT}/"${ds}"
+done
+
 
 # Set permissions for the user
 zfs allow "$user_name" create,mount,mountpoint,snapshot zfsroot/sys/archzfs/home/$user_name
 
 # Create and activate swap
-echo "Creating a ZFS swap volume of size ${swap_size_gb}GB..."
+echo "Creating a ZFS swap volume of size $GB..."
 zpool create -f swapzpool -o ashift=12 -O compression=zle -O devices=off -O sync=always -m none -R /mnt "${swap_partitions[@]}"
-zfs create -V "${swap_size_mb}M" -b $(getconf PAGESIZE) -o logbias=throughput -o primarycache=metadata -o secondarycache=none -o com.sun:auto-snapshot=false swapzpool/swap
+zfs create -V "24G" -b $(getconf PAGESIZE) -o logbias=throughput -o primarycache=metadata -o secondarycache=none -o com.sun:auto-snapshot=false swapzpool/swap
 mkswap /dev/zvol/swapzpool/swap
 swapon /dev/zvol/swapzpool/swap
 
@@ -55,10 +88,11 @@ zfs set canmount=noauto zfsroot/sys/archzfs/ROOT/default
 zfs mount zfsroot/sys/archzfs/ROOT/default
 zfs umount -a
 zpool export zfsroot
-zpool import -d /dev/disk/by-id -R /mnt zfsroot -N
+zpool import -d /dev/nvme1n1p4 -R /mnt zfsroot -N
 zfs mount zfsroot/sys/archzfs/ROOT/default
-mkdir -p /mnt/{boot/efi,etc}
-mount "/dev/${disk_ids[0]}1" /mnt/boot/efi
+zfs mount -a
+mkdir -p /mnt/{boot/efi,etc/zfs}
+mount /dev/nvme1n1p1 /mnt/boot/efi
 
 # Configure mkinitcpio.conf
 sed -i 's/^HOOKS.*/HOOKS=(base udev autodetect modconf block keyboard zfs filesystems)/' /etc/mkinitcpio.conf
